@@ -547,9 +547,11 @@ function drawCar(x, bottom, withDriver, pile) {
   });
   ctx.fillStyle = '#F2C94C'; ctx.strokeStyle = '#B98A12'; ctx.lineWidth = 2.5;
   rr(-60, -34, 72, 20, 4); ctx.fill(); ctx.stroke();
-  if (withDriver) drawOrange(30, -44, 12, { dir: 1 });
   ctx.fillStyle = '#F2C94C'; ctx.beginPath(); ctx.moveTo(10, -14); ctx.lineTo(10, -58); ctx.lineTo(40, -58); ctx.lineTo(54, -34); ctx.lineTo(60, -34); ctx.lineTo(60, -14); ctx.closePath(); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = 'rgba(200,222,240,.55)'; ctx.beginPath(); ctx.moveTo(16, -36); ctx.lineTo(16, -53); ctx.lineTo(37, -53); ctx.lineTo(48, -36); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#EAF4FB'; ctx.beginPath(); ctx.moveTo(16, -36); ctx.lineTo(16, -53); ctx.lineTo(37, -53); ctx.lineTo(48, -36); ctx.closePath(); ctx.fill();
+  if (withDriver) {   // driver peeks out of the window, clipped to it
+    ctx.save(); ctx.clip(); drawOrange(30, -40, 12, { dir: 1 }); ctx.restore();
+  }
   ctx.fillStyle = '#F2C94C'; rr(-60, -18, 120, 8, 3); ctx.fill(); ctx.stroke();
   for (const wx_ of [-36, 34]) { ctx.fillStyle = '#3D4655'; ctx.beginPath(); ctx.arc(wx_, -10, 11, 0, 7); ctx.fill(); ctx.fillStyle = '#C9CCD6'; ctx.beginPath(); ctx.arc(wx_, -10, 4, 0, 7); ctx.fill(); }
   ctx.restore();
