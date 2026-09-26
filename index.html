@@ -26,23 +26,20 @@
   .spacer { flex: 1; }
   .btns { display: flex; gap: 8px; }
 
-  #toast { position: fixed; left: 16px; bottom: 16px; width: min(360px, calc(100vw - 32px)); background: #fff; border-radius: 16px; padding: 14px 16px 16px; box-shadow: 0 6px 24px rgba(31,111,168,.18); }
-  #toast h3 { font-family: "DM Serif Display", serif; font-weight: 400; font-size: 20px; line-height: 1.2; margin: 6px 0; }
-  #toast p { margin: 0 0 12px; color: var(--grey); font-size: 14px; line-height: 1.4; }
-  #toast .close { position: absolute; top: 8px; right: 10px; background: none; border: 0; font-size: 20px; color: var(--grey); }
-  #toast a.btn { text-decoration: none; display: inline-block; font-size: 14px; }
-
-  #controls { position: fixed; right: 16px; bottom: 16px; display: grid; grid-template-columns: repeat(3, 52px); gap: 8px; }
-  #controls button { height: 52px; border-radius: 50%; border: 1.5px solid var(--deep); background: rgba(255,255,255,.85); color: var(--deep); font-size: 18px; font-weight: 700; user-select: none; -webkit-user-select: none; }
-  #controls #jumpBtn { border-radius: 26px; font-size: 14px; }
+  #bar { position: fixed; left: 0; right: 0; bottom: 0; min-height: 68px; display: flex; align-items: center; gap: 12px; padding: 8px 16px calc(8px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid var(--rule); }
+  #article { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; }
+  #article .text { flex: 1; min-width: 0; }
+  #article .title { font-family: "DM Serif Display", serif; font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #article .hint { color: var(--grey); font-size: 14px; }
+  #article a.btn { text-decoration: none; font-size: 14px; padding: 8px 14px; white-space: nowrap; }
+  #controls { display: flex; gap: 6px; }
+  #controls button { width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--deep); background: #fff; color: var(--deep); font-size: 16px; font-weight: 700; user-select: none; -webkit-user-select: none; }
+  #controls #jumpBtn { width: 64px; border-radius: 22px; font-size: 14px; }
   #controls [hidden], #controls[hidden] { display: none; }
-  #controls.maze { grid-template-areas: ". up ." "left down right"; }
-  #controls.maze #upBtn { grid-area: up; } #controls.maze #downBtn { grid-area: down; }
-  #controls.maze #backBtn { grid-area: left; } #controls.maze #fastBtn { grid-area: right; }
-  @media (max-width: 560px) { #toast { bottom: 140px; } }
+  @media (max-width: 560px) { #article .title { font-size: 16px; } #article .eyebrow { display: none; } }
 
   .overlay { position: fixed; inset: 0; background: rgba(242,248,253,.92); display: flex; align-items: center; justify-content: center; padding: 16px; }
-  .overlay[hidden], #toast[hidden], #end[hidden] { display: none; }
+  .overlay[hidden], #end[hidden] { display: none; }
   .panel { background: #fff; border-radius: 20px; padding: 28px; max-width: 460px; width: 100%; text-align: center; box-shadow: 0 6px 30px rgba(31,111,168,.15); }
   .panel h1 { font-family: "DM Serif Display", serif; font-weight: 400; font-size: 44px; margin: 8px 0; }
   .panel p { color: var(--grey); line-height: 1.5; }
@@ -81,15 +78,16 @@
   </div>
 </header>
 
-<div id="toast" hidden></div>
-
-<div id="controls">
-  <button id="upBtn" aria-label="Move up" hidden>▲</button>
-  <button id="backBtn" aria-label="Move left">◀</button>
-  <button id="jumpBtn">Jump</button>
-  <button id="fastBtn" aria-label="Move right">▶</button>
-  <button id="downBtn" aria-label="Move down" hidden>▼</button>
-</div>
+<footer id="bar">
+  <div id="article"><div class="text"><div class="hint">Collect articles and they'll show up here.</div></div></div>
+  <div id="controls">
+    <button id="backBtn" aria-label="Move left">◀</button>
+    <button id="upBtn" aria-label="Move up" hidden>▲</button>
+    <button id="downBtn" aria-label="Move down" hidden>▼</button>
+    <button id="jumpBtn">Jump</button>
+    <button id="fastBtn" aria-label="Move right">▶</button>
+  </div>
+</footer>
 
 <div id="title" class="overlay">
   <div class="panel">
@@ -264,10 +262,11 @@ const banner = [], carPile = [], followers = [], popups = [], sparks = [];
 
 function resize() {
   dpr = window.devicePixelRatio || 1;
-  cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
-  cv.style.width = innerWidth + 'px'; cv.style.height = innerHeight + 'px';
-  S = Math.min(innerHeight / 560, innerWidth / 640);
-  W = innerWidth / S; H = innerHeight / S;
+  const h = innerHeight - $('bar').offsetHeight;   // the game stops above the article bar
+  cv.width = innerWidth * dpr; cv.height = h * dpr;
+  cv.style.width = innerWidth + 'px'; cv.style.height = h + 'px';
+  S = Math.min(h / 560, innerWidth / 640);
+  W = innerWidth / S; H = h / S;
 }
 addEventListener('resize', resize); resize();
 
@@ -312,18 +311,12 @@ $('artBtn').onclick = () => { showArt = !showArt; $('artBtn').setAttribute('aria
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmtDate = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-function toast(html) {
-  const t = $('toast');
-  t.innerHTML = `<button class="close" aria-label="Close">×</button>` + html;
-  t.querySelector('.close').onclick = () => t.hidden = true;
-  t.hidden = false;
-}
 function showPost(p) {
-  toast(`<div class="eyebrow">${esc(phaseName[p.phase])} · #${p.n} · ${fmtDate(p.date)}${p.paid ? ' · Paid' : ''}</div>
-    <h3>${esc(p.title)}</h3>${p.subtitle ? `<p>${esc(p.subtitle)}</p>` : ''}
-    <a class="btn" href="${esc(p.url)}" target="_blank" rel="noopener">Read →</a>`);
+  $('article').innerHTML = `<div class="text"><div class="eyebrow">#${p.n} · ${esc(phaseName[p.phase])} · ${fmtDate(p.date)}${p.paid ? ' · Paid' : ''}</div>
+    <div class="title" title="${esc(p.title)}">${esc(p.title)}</div></div>
+    <a class="btn" href="${esc(p.url)}" target="_blank" rel="noopener">Read →</a>`;
 }
-const showLocked = n => toast(`<div class="eyebrow">#${n}</div><h3>Not written yet</h3><p>This step is still being built.</p>`);
+const showLocked = n => $('article').innerHTML = `<div class="text"><div class="eyebrow">#${n}</div><div class="title">Not written yet</div></div>`;
 
 function openGallery() {
   $('galleryBody').innerHTML = PHASES.map(ph => {
@@ -343,7 +336,6 @@ function setHud(ph) {
   $('phaseCount').textContent = `${all.filter(b => b.hit).length} / ${all.length}`;
 }
 function setMazeControls(on) {
-  $('controls').classList.toggle('maze', on);
   $('upBtn').hidden = $('downBtn').hidden = !on;
   $('jumpBtn').hidden = on;
 }
@@ -422,7 +414,7 @@ function update(dt) {
   if (dir) P.dir = dir;
   const prevX = P.x, prevMode = modeAt(P.x);
   let nx = Math.min(flagX + 300, Math.max(160, P.x + dir * (prevMode === 'drive' ? 380 : 300) * dt));
-  if (prevMode !== 'fly' && groundY(nx + dir * R * 0.6) < P.y + footOf(prevMode) - 34) nx = P.x;   // tall step: jump up
+  if (prevMode !== 'fly' && groundY(nx + dir * R * 0.6) < P.y + footOf(prevMode) - 2) nx = P.x;   // anything higher: jump up
   P.x = nx;
 
   // workshop door → maze
@@ -472,7 +464,7 @@ function update(dt) {
 
   if (P.x >= flagX - 10) {
     state = 'end'; endT = T;
-    $('toast').hidden = true; $('controls').hidden = true;
+    $('controls').hidden = true;
     $('endText').textContent = `You collected ${found} of ${POSTS.length} posts. Post #100 is the next step.`;
     setTimeout(() => $('end').hidden = false, 900);
   }
