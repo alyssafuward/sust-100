@@ -144,7 +144,27 @@ inPhase('quiet').forEach((p, i) => blocks.push({ x: quiet.x0 + 660 + i * 120, po
 wx += 400; // unseen gap the warp pipe skips over
 
 const ret = seg('return', 300 + inPhase('return').length * 230 + 200);
-inPhase('return').forEach((p, i) => blocks.push({ x: ret.x0 + 300 + i * 230, post: p, marcher: true }));
+// parade terrain: little stairs, floats and crates (h = height above ground)
+const terrain = [];
+{
+  let x = ret.x0 + 420, i = 0;
+  const put = (w, h, kind) => { terrain.push({ x0: x, x1: x + w, h, kind }); x += w; };
+  const mods = [
+    () => { put(60, 26, 'step'); put(60, 52, 'step'); put(220, 78, 'step'); put(60, 52, 'step'); put(60, 26, 'step'); },
+    () => { put(480, 62, 'float'); },
+    () => { put(80, 54, 'crate'); put(80, 108, 'crate'); put(80, 54, 'crate'); },
+    () => { put(90, 46, 'step'); put(200, 92, 'step'); x += 140; put(90, 50, 'drum'); },
+    () => { put(360, 58, 'float'); x += 90; put(80, 54, 'crate'); },
+  ];
+  while (x < ret.x1 - 900) { mods[i++ % mods.length](); x += 240 + (i % 3) * 60; }
+}
+const edgeNear = x => terrain.some(t => Math.abs(x - t.x0) < 34 || Math.abs(x - t.x1) < 34);
+const SIGN = [36, 44, 54, 40, 50], MARCH_R = [12, 17, 22, 14, 26, 19], LIFT = [96, 132, 112, 150, 104, 140];
+inPhase('return').forEach((p, i) => {
+  let x = ret.x0 + 300 + i * 230;
+  while (edgeNear(x)) x += 12;
+  blocks.push({ x, post: p, marcher: true, s: SIGN[i % 5], mr: MARCH_R[i % 6], lift: LIFT[i % 6] });
+});
 
 const fw = seg('framework', 300 + inPhase('framework').length * 280 + 200);
 inPhase('framework').forEach((p, i) => blocks.push({ x: fw.x0 + 300 + i * 280, post: p }));
@@ -166,10 +186,11 @@ for (let k = 0; k < nSteps - 1; k++) {
 const worldEnd = stp.x1;
 
 function groundY(x) {
+  if (x >= ret.x0 && x < ret.x1) { for (const t of terrain) if (x >= t.x0 && x < t.x1) return G - t.h; return G; }
   if (x < stairX0) return G;
   return G - RISE * Math.min(nSteps, Math.floor((x - stairX0) / STEP_W) + 1);
 }
-for (const b of blocks) if (!b.fly) b.y = groundY(b.x) - 148;
+for (const b of blocks) { b.s = b.s || 44; if (!b.fly) b.y = groundY(b.x) - (b.lift || 126) - b.s / 2; }
 function phaseAt(x) {
   for (const s of segs) if (x < s.x1) return x < s.x0 ? 'quiet' : s.id;
   return 'step';
@@ -218,7 +239,7 @@ $('jumpBtn').addEventListener('pointerdown', e => { e.preventDefault(); jump(); 
 cv.addEventListener('pointerdown', e => {
   const x = e.clientX / S + camX, y = e.clientY / S + camY;
   for (const b of blocks) {
-    if (b.hit && b.post && Math.abs(x - b.x) < 32 && Math.abs(y - b.y) < 32) return showPost(b.post);
+    if (b.hit && b.post && Math.abs(x - b.x) < b.s / 2 + 10 && Math.abs(y - b.y) < b.s / 2 + 10) return showPost(b.post);
     if (b.hit && b.pin && Math.abs(x - b.x) < 40 && Math.abs(y - pinY(b)) < 28) return showPost(b.post);
   }
   jump();
@@ -277,7 +298,9 @@ function update(dt) {
   if (state !== 'play') return;
   const dir = keys.left === keys.right ? 0 : keys.left ? -1 : 1;
   if (dir) P.dir = dir;
-  P.x = Math.min(flagX + 300, Math.max(160, P.x + dir * 300 * dt));
+  let nx = Math.min(flagX + 300, Math.max(160, P.x + dir * 300 * dt));
+  if (P.x >= quiet.x0 && groundY(nx + dir * R * 0.6) < P.y + R - 34) nx = P.x;   // bumped into a tall step: jump up
+  P.x = nx;
 
   // warp pipe: skip the unseen gap in either direction
   if (P.x > pipeX && P.x < ret.x0) {
@@ -304,8 +327,8 @@ function update(dt) {
     if (P.vy >= 0 && P.y + R >= gy) { P.y = gy - R; P.vy = 0; P.onGround = true; }
     else if (P.y + R < gy - 1) P.onGround = false;
     if (P.vy < 0) for (const b of blocks) {
-      if (b.fly || Math.abs(P.x - b.x) > 22 + R * 0.9) continue;
-      const bottom = b.y + 22;
+      if (b.fly || Math.abs(P.x - b.x) > b.s / 2 + R * 0.9) continue;
+      const bottom = b.y + b.s / 2;
       if (prevHead >= bottom - 2 && P.y - R < bottom) { P.y = bottom + R; P.vy = 150; hitBlock(b); }
     }
   }
@@ -374,20 +397,20 @@ function drawPlane(x, y, withPilot) {
 function drawBlock(b) {
   const age = b.t != null ? T - b.t : 9;
   const lift = age < 0.25 ? -Math.sin(age / 0.25 * Math.PI) * 10 : 0;
-  const x = b.x - 22, y = b.y - 22 + lift;
+  const z = b.s, x = b.x - z / 2, y = b.y - z / 2 + lift;
   if (b.locked) {
-    ctx.setLineDash([5, 4]); ctx.strokeStyle = '#8A9BB0'; ctx.lineWidth = 2; rr(x, y, 44, 44, 8); ctx.stroke(); ctx.setLineDash([]);
+    ctx.setLineDash([5, 4]); ctx.strokeStyle = '#8A9BB0'; ctx.lineWidth = 2; rr(x, y, z, z, 8); ctx.stroke(); ctx.setLineDash([]);
     ctx.fillStyle = '#8A9BB0'; ctx.font = '600 12px DM Sans'; ctx.textAlign = 'center';
-    ctx.fillText('#' + b.locked, b.x, b.y + 4 + lift); art('coming-soon block', x, y, 44, 44); return;
+    ctx.fillText('#' + b.locked, b.x, b.y + 4 + lift); art('coming-soon block', x, y, z, z); return;
   }
   if (!b.hit) {
-    ctx.fillStyle = '#F5C542'; ctx.strokeStyle = '#B98A12'; ctx.lineWidth = 2.5; rr(x, y, 44, 44, 8); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#fff'; ctx.font = '700 26px DM Sans'; ctx.textAlign = 'center'; ctx.fillText('?', b.x, b.y + 10 + Math.sin(T * 3 + b.x) * 1.5);
-    art('? block', x, y, 44, 44);
+    ctx.fillStyle = '#F5C542'; ctx.strokeStyle = '#B98A12'; ctx.lineWidth = 2.5; rr(x, y, z, z, 8); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.font = `700 ${Math.round(z * 0.6)}px DM Sans`; ctx.textAlign = 'center'; ctx.fillText('?', b.x, b.y + z * 0.22 + Math.sin(T * 3 + b.x) * 1.5);
+    art('? block', x, y, z, z);
   } else {
-    ctx.fillStyle = '#fff'; ctx.strokeStyle = '#1F6FA8'; ctx.lineWidth = 2.5; rr(x, y, 44, 44, 8); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#1F6FA8'; ctx.font = '700 14px DM Sans'; ctx.textAlign = 'center'; ctx.fillText('#' + b.post.n, b.x, b.y + 5 + lift);
-    art('opened block', x, y, 44, 44);
+    ctx.fillStyle = '#fff'; ctx.strokeStyle = '#1F6FA8'; ctx.lineWidth = 2.5; rr(x, y, z, z, 8); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#1F6FA8'; ctx.font = `700 ${Math.round(z * 0.32)}px DM Sans`; ctx.textAlign = 'center'; ctx.fillText('#' + b.post.n, b.x, b.y + 5 + lift);
+    art('opened block', x, y, z, z);
   }
 }
 
@@ -412,6 +435,7 @@ function drawGround() {
   const xs = [camX - 20];
   for (const s of segs) xs.push(s.x0, s.x1);
   for (let k = 0; k <= nSteps; k++) xs.push(stairX0 + k * STEP_W);
+  for (const t of terrain) xs.push(t.x0, t.x1);
   xs.push(camX + W + 20);
   const pts = [...new Set(xs)].filter(x => x >= camX - 20 && x <= camX + W + 20).sort((a, b) => a - b);
   for (let i = 0; i < pts.length - 1; i++) {
@@ -472,9 +496,45 @@ function drawReturn() {
   art('bunting', camX + 40, 60, 200, 40);
   for (const b of blocks) if (b.marcher && Math.abs(b.x - camX - W / 2) < W) {
     const bob = Math.abs(Math.sin(T * 5 + b.x)) * -4;
-    ctx.strokeStyle = '#8A6A45'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(b.x, b.y + 22); ctx.lineTo(b.x, G - 26 + bob); ctx.stroke();
-    drawOrange(b.x - 6, G - 16 + bob, 15, { feet: true, dir: 1 });
-    art('orange - marching with sign', b.x - 26, b.y + 22, 44, G - b.y - 22);
+    const gy = groundY(b.x), r = b.mr;
+    ctx.strokeStyle = '#8A6A45'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(b.x, b.y + b.s / 2); ctx.lineTo(b.x, gy - r * 1.6 + bob); ctx.stroke();
+    drawOrange(b.x - r * 0.4, gy - r * 1.1 + bob, r, { feet: true, dir: 1 });
+    art('orange - marching with sign (sizes S–L)', b.x - r * 1.5, b.y + b.s / 2, r * 3, gy - b.y - b.s / 2);
+  }
+}
+
+function drawParadeProps() {
+  for (const t of terrain) {
+    if (t.x1 < camX || t.x0 > camX + W) continue;
+    const w = t.x1 - t.x0, top = G - t.h;
+    if (t.kind === 'step') {
+      ctx.fillStyle = '#F7B6C5'; ctx.fillRect(t.x0, top, w, t.h); ctx.strokeStyle = '#C97F93'; ctx.lineWidth = 2; ctx.strokeRect(t.x0, top, w, t.h);
+      art('parade steps', t.x0, top, w, t.h);
+    } else if (t.kind === 'crate') {
+      for (let y = top; y < G - 1; y += 54) {
+        ctx.fillStyle = '#D9A866'; ctx.fillRect(t.x0 + 2, y, w - 4, 54); ctx.strokeStyle = '#9A6A32'; ctx.lineWidth = 3; ctx.strokeRect(t.x0 + 2, y, w - 4, 54);
+        ctx.beginPath(); ctx.moveTo(t.x0 + 4, y + 2); ctx.lineTo(t.x1 - 4, y + 52); ctx.stroke();
+      }
+      art('crate', t.x0, top, w, t.h);
+    } else if (t.kind === 'drum') {
+      ctx.fillStyle = '#E0524C'; ctx.fillRect(t.x0, top + 6, w, t.h - 6); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(t.x0 + w / 2, top + 6, w / 2, 8, 0, 0, 7); ctx.fill();
+      ctx.strokeStyle = '#F5C542'; ctx.lineWidth = 2; ctx.beginPath();
+      for (let k = 0; k <= 4; k++) ctx.lineTo(t.x0 + k * w / 4, top + (k % 2 ? t.h - 6 : 14));
+      ctx.stroke(); art('big drum', t.x0, top, w, t.h);
+    } else if (t.kind === 'float') {
+      ctx.fillStyle = '#A8D8F0'; rr(t.x0, top, w, t.h - 12, 10); ctx.fill();
+      ctx.fillStyle = '#fff';
+      for (let x = t.x0 + 16; x < t.x1 - 8; x += 32) { ctx.beginPath(); ctx.arc(x, top + 4, 12, 0, Math.PI); ctx.fill(); }
+      ctx.fillStyle = '#5C667A';
+      for (const x of [t.x0 + 40, t.x1 - 40]) { ctx.beginPath(); ctx.arc(x, G - 12, 12, 0, 7); ctx.fill(); }
+      // balloons tied to the float
+      for (const [dx, c] of [[20, '#F7A8B8'], [w - 24, '#C9B8F0']]) {
+        const bx = t.x0 + dx, by = top - 80 + Math.sin(T * 2 + dx) * 4;
+        ctx.strokeStyle = '#8A6A45'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(bx, top); ctx.lineTo(bx, by + 16); ctx.stroke();
+        ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(bx, by, 12, 16, 0, 0, 7); ctx.fill();
+      }
+      art('parade float + balloons', t.x0, top - 100, w, t.h + 100);
+    }
   }
 }
 
@@ -547,8 +607,9 @@ function draw() {
   }
   if (camX + W > worldEnd) { ctx.fillStyle = SKY.step; ctx.fillRect(worldEnd, camY - 10, camX + W - worldEnd + 10, H + 20); }
   drawClouds(); art('clouds', camX + W * 0.55, 40, 120, 50);
-  drawFramework(); drawBuild(); drawReturn();
+  drawFramework(); drawBuild();
   drawGround(); art('sky + ground per level', camX + 8, camY + H - 70, 160, 60);
+  drawParadeProps(); drawReturn();
   drawQuiet(); drawStep();
   for (const b of blocks) if (Math.abs(b.x - camX - W / 2) < W) drawBlock(b);
   drawCareer();
