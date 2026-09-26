@@ -15,7 +15,7 @@ CHECKPOINTS = [
     ("06-collect-on-touch", "e0b0c1c", "Collect on touch", "Boxes collect from any side, not just from below"),
     ("07-hometown-street", "ebbd0c2", "Hometown street", "The busy last level: houses, townsfolk, parade oranges with signs, #100 is home"),
     ("08-race-flags", "5eca176", "The race, with flags", "Bandanna, flags and hurdles, small faded town, #100 finish line"),
-    ("09-race-boxes", "0e71636", "The race, with boxes", "Boxes are back, bolder hurdles, 97 posts"),
+    ("09-race-boxes", "687e7b6", "The race, with boxes", "Boxes are back, bolder hurdles, 97 posts"),
 ]
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 OUT = os.path.join(ROOT, "versions")

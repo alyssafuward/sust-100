@@ -35,7 +35,7 @@
   #controls { display: flex; gap: 6px; }
   #controls button { width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--deep); background: #fff; color: var(--deep); font-size: 16px; font-weight: 700; user-select: none; -webkit-user-select: none; }
   #controls #jumpBtn { width: 64px; border-radius: 22px; font-size: 14px; }
-  #versionsBtn { width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--rule); color: var(--grey); display: grid; place-items: center; font: italic 700 17px Georgia, serif; text-decoration: none; }
+  #versionsBtn { flex: none; margin-left: 8px; width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--rule); color: var(--grey); display: grid; place-items: center; font: italic 700 17px Georgia, serif; text-decoration: none; }
   #controls [hidden], #controls[hidden] { display: none; }
   @media (max-width: 560px) { #article .title { font-size: 16px; } #article .eyebrow { display: none; } }
 
@@ -86,9 +86,9 @@
     <button id="upBtn" aria-label="Move up" hidden>▲</button>
     <button id="downBtn" aria-label="Move down" hidden>▼</button>
     <button id="jumpBtn">Jump</button>
-    <a id="versionsBtn" href="../" target="_blank" rel="noopener" aria-label="Earlier versions of this game" title="Earlier versions">i</a>
     <button id="fastBtn" aria-label="Move right">▶</button>
   </div>
+  <a id="versionsBtn" href="../" target="_blank" rel="noopener" aria-label="Earlier versions of this game" title="Earlier versions">i</a>
 </footer>
 
 <div id="title" class="overlay">
