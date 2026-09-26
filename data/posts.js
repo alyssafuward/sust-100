@@ -8,7 +8,7 @@ window.POSTS = [
   "phase": "career",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!sTQy!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb88bed09-b4b9-442e-8be2-986e728ee0ba_3992x2242.jpeg"
+  "cover": null
  },
  {
   "n": 2,
@@ -19,7 +19,7 @@ window.POSTS = [
   "phase": "career",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!C7WP!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fbucketeer-e05bbc84-baa3-437e-9518-adb32be77984.s3.amazonaws.com%2Fpublic%2Fimages%2Ff8a65d3e-150f-4c27-a07f-8e3fa88a9862_772x560.png"
+  "cover": null
  },
  {
   "n": 3,
@@ -30,7 +30,7 @@ window.POSTS = [
   "phase": "career",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!CmEa!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fbucketeer-e05bbc84-baa3-437e-9518-adb32be77984.s3.amazonaws.com%2Fpublic%2Fimages%2Ffc848dbb-27f4-40f0-827d-b1d4c171b67f_643x668.png"
+  "cover": null
  },
  {
   "n": 4,
@@ -41,7 +41,7 @@ window.POSTS = [
   "phase": "career",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!y8fR!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F48deefd4-c0cf-44dd-a98d-8594c3f376ba_700x525.png"
+  "cover": null
  },
  {
   "n": 5,
@@ -52,7 +52,7 @@ window.POSTS = [
   "phase": "career",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!s9JK!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9ad8e9ac-1740-4879-8559-a4136c732c15_1286x812.png"
+  "cover": null
  },
  {
   "n": 6,
@@ -63,7 +63,7 @@ window.POSTS = [
   "phase": "career",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!ztHB!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe9041db6-47aa-4225-a08d-793fac5fc84a_414x287.png"
+  "cover": null
  },
  {
   "n": 7,
@@ -74,7 +74,7 @@ window.POSTS = [
   "phase": "career",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!F3z7!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2a8b28f7-cd9f-45eb-8942-fa387e785158_1600x1066.jpeg"
+  "cover": null
  },
  {
   "n": 8,
@@ -85,7 +85,7 @@ window.POSTS = [
   "phase": "career",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!08G5!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F778a0b93-ee7b-4504-a54e-38b3bb6043ee_1098x812.png"
+  "cover": null
  },
  {
   "n": 9,
@@ -107,7 +107,7 @@ window.POSTS = [
   "phase": "career",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!SRen!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F88ec3446-3fad-4b1d-9d35-7f94490c9412_922x605.png"
+  "cover": null
  },
  {
   "n": 11,
@@ -118,7 +118,7 @@ window.POSTS = [
   "phase": "career",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!pvTf!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbb3768c1-efe8-48fa-9458-91da9f7988c8_709x468.png"
+  "cover": null
  },
  {
   "n": 12,
@@ -129,7 +129,7 @@ window.POSTS = [
   "phase": "career",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!TLnu!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6a3c80aa-a853-4fa2-8628-85f31c1887fb_1258x828.png"
+  "cover": null
  },
  {
   "n": 13,
@@ -140,7 +140,7 @@ window.POSTS = [
   "phase": "career",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!gO7k!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8b0d4692-ee5e-4778-aa3b-c43c2cdc7bc6_693x453.png"
+  "cover": null
  },
  {
   "n": 14,
@@ -151,7 +151,7 @@ window.POSTS = [
   "phase": "career",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!1vCM!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Faf4586a5-8dc8-419c-a074-7db4ffd7c4e3_1628x1078.png"
+  "cover": null
  },
  {
   "n": 15,
@@ -162,7 +162,7 @@ window.POSTS = [
   "phase": "career",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!zvgp!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbd27c261-514f-4567-ae35-98bda6b4cbdb_1836x1206.png"
+  "cover": null
  },
  {
   "n": 16,
@@ -184,7 +184,7 @@ window.POSTS = [
   "phase": "career",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!X7J1!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4e85f920-5c8c-4395-9e0e-d5cbca67a3fc_1912x1260.png"
+  "cover": null
  },
  {
   "n": 18,
@@ -206,7 +206,7 @@ window.POSTS = [
   "phase": "career",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!bZ4W!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe40f6ff8-5b86-4998-a3da-b1b14d36b027_1830x1206.png"
+  "cover": null
  },
  {
   "n": 20,
@@ -217,7 +217,7 @@ window.POSTS = [
   "phase": "career",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!PDSg!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc6e2e72e-ae2c-449a-a7cd-1f954fcf0dd2_1602x1052.png"
+  "cover": null
  },
  {
   "n": 21,
@@ -228,7 +228,7 @@ window.POSTS = [
   "phase": "quiet",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!JMyn!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8152f916-48b0-4f96-b7f2-811f472880ff_1248x1088.png"
+  "cover": null
  },
  {
   "n": 22,
@@ -261,7 +261,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!x56P!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F88d74cb4-0bd0-4a34-9448-5acf5758d2b3_1600x1196.jpeg"
+  "cover": null
  },
  {
   "n": 25,
@@ -283,7 +283,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!6cSF!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F997e03f7-f66b-4776-92bc-c4937428815c_2500x1904.png"
+  "cover": null
  },
  {
   "n": 27,
@@ -294,7 +294,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!Y0yW!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Feee33fb6-6235-4263-96d3-918a112787f9_1162x798.png"
+  "cover": null
  },
  {
   "n": 28,
@@ -305,7 +305,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!9bjT!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdcabe1d7-8390-4832-b7ec-14aed8275fa7_1963x1507.jpeg"
+  "cover": null
  },
  {
   "n": 29,
@@ -316,7 +316,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!4e9_!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F88e8b594-0637-4ffd-8631-16e887dc8acb_2400x1800.jpeg"
+  "cover": null
  },
  {
   "n": 30,
@@ -327,7 +327,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!bEoD!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F50a71ea8-3625-4630-8192-f2da36512578_2500x1904.png"
+  "cover": null
  },
  {
   "n": 31,
@@ -338,7 +338,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!7xMV!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F7ff64c81-4b1f-44d7-bdb2-1c50dd8f7169_1920x1080.jpeg"
+  "cover": null
  },
  {
   "n": 32,
@@ -349,7 +349,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!4-kc!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff594620e-9965-4329-a561-6adce7703b8f_4200x3000.jpeg"
+  "cover": null
  },
  {
   "n": 33,
@@ -360,7 +360,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!XsG7!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc01318f6-01eb-44d1-b8f9-648771fdc2eb_1920x1080.jpeg"
+  "cover": null
  },
  {
   "n": 34,
@@ -371,7 +371,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!g4Lb!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4a86c9b2-dc28-4892-840d-490d42c2db33_1920x1080.jpeg"
+  "cover": null
  },
  {
   "n": 35,
@@ -382,7 +382,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!sdel!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fcf0f4428-d0d0-4a64-8e25-7ce97f11027d_1600x1219.png"
+  "cover": null
  },
  {
   "n": 36,
@@ -393,7 +393,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!-pIB!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5bef5424-b314-4f6d-bdb6-a60274ecdbfa_1920x1080.jpeg"
+  "cover": null
  },
  {
   "n": 37,
@@ -404,7 +404,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!yx_Y!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F139d089a-b0e2-4754-8b38-e435e2b3ba1d_1352x758.png"
+  "cover": null
  },
  {
   "n": 38,
@@ -415,7 +415,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!tFF4!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2adb11ca-8a81-4d76-a89b-b7f9b8bdbd47_1920x1080.jpeg"
+  "cover": null
  },
  {
   "n": 39,
@@ -426,7 +426,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!b42y!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F303016cc-9d78-483a-a3e2-5d05d1ec15be_1666x406.png"
+  "cover": null
  },
  {
   "n": 40,
@@ -437,7 +437,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!fG_h!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff15c8e04-aff3-47f2-a6d3-fe1d896e8e51_1920x1080.jpeg"
+  "cover": null
  },
  {
   "n": 41,
@@ -448,7 +448,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!Vx5i!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9c0fc475-825d-49f6-a07a-ab82da701def_2500x1904.png"
+  "cover": null
  },
  {
   "n": 42,
@@ -459,7 +459,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!bdJu!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fcfdc5dcf-f446-4684-8832-40bef17124d7_1920x1080.jpeg"
+  "cover": null
  },
  {
   "n": 43,
@@ -470,7 +470,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!DkdN!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fec54e92c-3c37-4a5e-bf9e-48cac7e792ac_1994x1122.jpeg"
+  "cover": null
  },
  {
   "n": 44,
@@ -503,7 +503,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!F1_2!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F30535603-2fe1-4f61-8d8e-298d7c1d9cfa_1920x1080.jpeg"
+  "cover": null
  },
  {
   "n": 47,
@@ -514,7 +514,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!04Ky!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F937e462d-65c8-4418-b7e1-163d2d42abd9_1363x767.jpeg"
+  "cover": null
  },
  {
   "n": 48,
@@ -525,7 +525,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!2h17!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F461657b4-b065-4e37-8578-148b056da2c9_2500x1904.png"
+  "cover": null
  },
  {
   "n": 49,
@@ -536,7 +536,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!00V7!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fffabc9e1-a600-4f44-9463-0b12bfb51f00_2500x1904.png"
+  "cover": null
  },
  {
   "n": 50,
@@ -547,7 +547,7 @@ window.POSTS = [
   "phase": "return",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!Nj-_!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8f9eb578-3984-4282-9fcd-481f9cdb4d4c_1920x1080.png"
+  "cover": null
  },
  {
   "n": 51,
@@ -635,7 +635,7 @@ window.POSTS = [
   "phase": "framework",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!-u2i!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0a7d32e3-a196-4bf4-83c9-70e0bc9bbc5d_1920x1080.png"
+  "cover": null
  },
  {
   "n": 59,
@@ -756,7 +756,7 @@ window.POSTS = [
   "phase": "build",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!JAsv!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd57b509e-ef8d-4f63-9dc5-b3b63dd2e91e_1920x1080.png"
+  "cover": null
  },
  {
   "n": 70,
@@ -915,7 +915,7 @@ window.POSTS = [
  {
   "n": 84,
   "date": "2026-08-18",
-  "title": "#1 / on how to technology as a human",
+  "title": "ESSAY #1 / on how to technology as a human",
   "subtitle": "A personal essay exploring how AI has changed technology and opened up space to bring in the human",
   "url": "https://alyssafuward.substack.com/p/1-on-how-to-technology-as-a-human",
   "phase": "step",
@@ -959,7 +959,7 @@ window.POSTS = [
  {
   "n": 88,
   "date": "2026-08-25",
-  "title": "#2 / making sense of “writing with ai”",
+  "title": "ESSAY #2 / making sense of “writing with ai”",
   "subtitle": "“Writing with AI” can mean many different things. Here’s a framework to make sense of this messy space.",
   "url": "https://alyssafuward.substack.com/p/3-making-sense-of-writing-with-ai",
   "phase": "step",
@@ -981,7 +981,7 @@ window.POSTS = [
  {
   "n": 90,
   "date": "2026-09-01",
-  "title": "#3 / vulnerability hangover",
+  "title": "ESSAY #3 / vulnerability hangover",
   "subtitle": "I’ve been putting myself out there, and it’s been feeling good! Then I reached too high and fell hard. Here is the aftermath and how I worked through it.",
   "url": "https://alyssafuward.substack.com/p/3-vulnerability-hangover",
   "phase": "step",
@@ -1003,7 +1003,7 @@ window.POSTS = [
  {
   "n": 92,
   "date": "2026-09-08",
-  "title": "#4 / growing up in between",
+  "title": "ESSAY #4 / growing up in between",
   "subtitle": "“Yeah but where you are really from?” A personal essay on moving between worlds and finding out how I belong.",
   "url": "https://alyssafuward.substack.com/p/4-child-of-immigrants",
   "phase": "step",
@@ -1020,7 +1020,51 @@ window.POSTS = [
   "phase": "step",
   "type": "newsletter",
   "paid": false,
-  "cover": "https://substackcdn.com/image/fetch/$s_!25sr!,w_480,h_270,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd3c2c471-0178-4f46-9606-9816bf8530cb_2400x1500.png"
+  "cover": null
+ },
+ {
+  "n": 94,
+  "date": "2026-09-15",
+  "title": "ESSAY #5 / hand-drawn with ai",
+  "subtitle": "To use AI or to not use AI? A personal essay on how I use AI-generated images when creating illustrations",
+  "url": "https://alyssafuward.substack.com/p/5-drawing-as-an-ai-aided-human",
+  "phase": "step",
+  "type": "newsletter",
+  "paid": false,
+  "cover": null
+ },
+ {
+  "n": 95,
+  "date": "2026-09-18",
+  "title": "Weekly Field Notes | Sep 18, 2026",
+  "subtitle": "Field Notes #6 / Books, shows, dances, and games",
+  "url": "https://alyssafuward.substack.com/p/weekly-field-notes-sep-18-2026",
+  "phase": "step",
+  "type": "newsletter",
+  "paid": false,
+  "cover": null
+ },
+ {
+  "n": 96,
+  "date": "2026-09-22",
+  "title": "ESSAY #6 / slow down to do more",
+  "subtitle": "I used to race fast through my life. In this personal essay, I share how I learned to slow down and do more with less.",
+  "url": "https://alyssafuward.substack.com/p/6-how-i-do-so-much",
+  "phase": "step",
+  "type": "podcast",
+  "paid": false,
+  "cover": null
+ },
+ {
+  "n": 97,
+  "date": "2026-09-25",
+  "title": "Weekly Field Notes | Sep 25, 2026",
+  "subtitle": "Field Notes #7 / Paper puzzles, cube puzzles, Substack features, and Chad Powers",
+  "url": "https://alyssafuward.substack.com/p/weekly-field-notes-sep-25-2026",
+  "phase": "step",
+  "type": "newsletter",
+  "paid": false,
+  "cover": null
  }
 ];
 window.PHASES = [{"id": "career", "name": "Career notes", "start": "2022-01-01"}, {"id": "quiet", "name": "The quiet stretch", "start": "2023-06-01"}, {"id": "return", "name": "The return", "start": "2024-12-01"}, {"id": "framework", "name": "The framework", "start": "2025-11-01"}, {"id": "build", "name": "Building with AI", "start": "2026-02-11"}, {"id": "step", "name": "A new step", "start": "2026-08-11"}];
