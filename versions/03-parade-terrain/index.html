@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>100 Posts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pale: #F2F8FD; --mid: #C8DEF0; --deep: #1F6FA8; --ink: #1A1A1A; --grey: #666; --rule: #D8ECF8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--pale); color: var(--ink); font-family: "DM Sans", system-ui, sans-serif; }
+  canvas { display: block; touch-action: manipulation; }
+  button { font: inherit; cursor: pointer; }
+  .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--deep); }
+  .btn { background: var(--deep); color: #fff; border: 0; border-radius: 999px; padding: 10px 18px; font-weight: 600; }
+  .ghost { background: rgba(255,255,255,.85); color: var(--deep); border: 1.5px solid var(--deep); border-radius: 999px; padding: 6px 14px; font-weight: 600; font-size: 13px; }
+  .ghost[aria-pressed="true"] { background: var(--deep); color: #fff; }
+
+  #hud { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 12px; padding: 12px 16px; pointer-events: none; }
+  #hud > * { pointer-events: auto; }
+  .count { background: #fff; border-radius: 999px; padding: 6px 14px; font-size: 14px; box-shadow: 0 1px 0 var(--rule); }
+  .count b { font-size: 16px; }
+  #phase { flex: 1; }
+  .btns { display: flex; gap: 8px; }
+
+  #toast { position: fixed; left: 16px; bottom: 16px; width: min(360px, calc(100vw - 32px)); background: #fff; border-radius: 16px; padding: 14px 16px 16px; box-shadow: 0 6px 24px rgba(31,111,168,.18); }
+  #toast h3 { font-family: "DM Serif Display", serif; font-weight: 400; font-size: 20px; line-height: 1.2; margin: 6px 0; }
+  #toast p { margin: 0 0 12px; color: var(--grey); font-size: 14px; line-height: 1.4; }
+  #toast .close { position: absolute; top: 8px; right: 10px; background: none; border: 0; font-size: 20px; color: var(--grey); }
+  #toast a.btn { text-decoration: none; display: inline-block; font-size: 14px; }
+
+  #controls { position: fixed; right: 16px; bottom: 16px; display: flex; gap: 8px; }
+  #controls button { width: 52px; height: 52px; border-radius: 50%; border: 1.5px solid var(--deep); background: rgba(255,255,255,.85); color: var(--deep); font-size: 18px; font-weight: 700; user-select: none; -webkit-user-select: none; }
+  #controls #jumpBtn { width: 72px; border-radius: 26px; font-size: 14px; }
+  @media (max-width: 560px) { #toast { bottom: 84px; } }
+
+  .overlay { position: fixed; inset: 0; background: rgba(242,248,253,.92); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .overlay[hidden], #toast[hidden] { display: none; }
+  .panel { background: #fff; border-radius: 20px; padding: 28px; max-width: 460px; width: 100%; text-align: center; box-shadow: 0 6px 30px rgba(31,111,168,.15); }
+  .panel h1 { font-family: "DM Serif Display", serif; font-weight: 400; font-size: 44px; margin: 8px 0; }
+  .panel p { color: var(--grey); line-height: 1.5; }
+  .keys { font-size: 13px; color: var(--grey); margin-top: 16px; }
+  .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+  #warp .panel { background: none; box-shadow: none; }
+
+  #gallery { align-items: stretch; }
+  #gallery .sheet { background: #fff; border-radius: 20px; max-width: 760px; width: 100%; margin: auto; max-height: 100%; overflow: auto; padding: 24px; }
+  #gallery .top { display: flex; justify-content: space-between; align-items: center; position: sticky; top: -24px; background: #fff; padding: 8px 0; }
+  #gallery h2 { font-family: "DM Serif Display", serif; font-weight: 400; margin: 0; font-size: 30px; }
+  #gallery h4 { font-family: "DM Serif Display", serif; font-weight: 400; font-size: 22px; margin: 24px 0 4px; }
+  #gallery ol { list-style: none; padding: 0; margin: 0; }
+  #gallery li a { display: grid; grid-template-columns: 44px 92px 1fr 18px; gap: 8px; padding: 8px 6px; border-bottom: 1px solid var(--rule); color: var(--ink); text-decoration: none; font-size: 14px; }
+  #gallery li a:hover { background: var(--pale); }
+  #gallery .n { color: var(--deep); font-weight: 700; }
+  #gallery .d { color: var(--grey); }
+  #gallery .found { color: var(--deep); }
+  @media (max-width: 560px) { #gallery li a { grid-template-columns: 38px 1fr 18px; } #gallery .d { display: none; } }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<header id="hud">
+  <div class="count"><b id="found">0</b> / <span id="total"></span> found</div>
+  <div id="phase" class="eyebrow"></div>
+  <div class="btns">
+    <button id="artBtn" class="ghost" aria-pressed="false">Art pieces</button>
+    <button id="allBtn" class="ghost">All articles</button>
+  </div>
+</header>
+
+<div id="toast" hidden></div>
+
+<div id="controls">
+  <button id="backBtn" aria-label="Move left">◀</button>
+  <button id="jumpBtn">Jump</button>
+  <button id="fastBtn" aria-label="Move right">▶</button>
+</div>
+
+<div id="title" class="overlay">
+  <div class="panel">
+    <div class="eyebrow">Post #100 · a little game</div>
+    <h1>100 posts</h1>
+    <p id="titleSub"></p>
+    <button id="startBtn" class="btn">Start</button>
+    <div class="keys">← → to move · Space or tap to jump / fly<br>Click any opened block to see its post again</div>
+  </div>
+</div>
+
+<div id="warp" class="overlay" hidden>
+  <div class="panel">
+    <div class="eyebrow">Warp pipe</div>
+    <h1>18 months later…</h1>
+    <p>Jun 2023 → Dec 2024</p>
+  </div>
+</div>
+
+<div id="end" class="overlay" hidden>
+  <div class="panel">
+    <div class="eyebrow">The top step</div>
+    <h1>Thank you</h1>
+    <p id="endText"></p>
+    <div class="row">
+      <button id="endAll" class="btn">All articles</button>
+      <button id="again" class="ghost">Play again</button>
+    </div>
+  </div>
+</div>
+
+<div id="gallery" class="overlay" hidden>
+  <div class="sheet">
+    <div class="top"><h2>All articles</h2><button id="closeGallery" class="ghost">Back to the game</button></div>
+    <div id="galleryBody"></div>
+  </div>
+</div>
+
+<script src="data/posts.js"></script>
+<script>
+const POSTS = window.POSTS, PHASES = window.PHASES;
+const TOTAL = 100;
+const G = 480;            // base ground line (world units)
+const R = 20;             // player radius
+const ORANGE = '#F88C00', ORANGE_DK = '#D06E00', LEAF = '#5DA045';
+const SKY = { career: '#E8DFF7', quiet: '#E4E7EF', return: '#FCE5EB', framework: '#D5E7F7', build: '#DDF0E6', step: '#CDE3F4' };
+const GROUND = { career: '#B9D99F', quiet: '#C9CCD6', return: '#F3C7D2', framework: '#A9CBEA', build: '#D9B98C', step: '#E6D2B2' };
+const phaseName = Object.fromEntries(PHASES.map(p => [p.id, p.name]));
+const $ = id => document.getElementById(id);
+
+// ---------- world layout ----------
+const segs = [], blocks = [];
+let wx = 0;
+function seg(id, len) { const s = { id, x0: wx, x1: wx + len }; segs.push(s); wx += len; return s; }
+const inPhase = id => POSTS.filter(p => p.phase === id);
+
+const car = seg('career', 600 + inPhase('career').length * 260 + 200);
+inPhase('career').forEach((p, i) => blocks.push({ x: car.x0 + 600 + i * 260, y: 245 + 125 * Math.sin(i * 1.1), post: p, fly: true }));
+
+const quiet = seg('quiet', 1100);
+const hangarX = quiet.x0 + 140, pipeX = quiet.x0 + 900;
+inPhase('quiet').forEach((p, i) => blocks.push({ x: quiet.x0 + 660 + i * 120, post: p }));
+wx += 400; // unseen gap the warp pipe skips over
+
+const ret = seg('return', 300 + inPhase('return').length * 230 + 200);
+// parade terrain: little stairs, floats and crates (h = height above ground)
+const terrain = [];
+{
+  let x = ret.x0 + 420, i = 0;
+  const put = (w, h, kind) => { terrain.push({ x0: x, x1: x + w, h, kind }); x += w; };
+  const mods = [
+    () => { put(60, 26, 'step'); put(60, 52, 'step'); put(220, 78, 'step'); put(60, 52, 'step'); put(60, 26, 'step'); },
+    () => { put(480, 62, 'float'); },
+    () => { put(80, 54, 'crate'); put(80, 108, 'crate'); put(80, 54, 'crate'); },
+    () => { put(90, 46, 'step'); put(200, 92, 'step'); x += 140; put(90, 50, 'drum'); },
+    () => { put(360, 58, 'float'); x += 90; put(80, 54, 'crate'); },
+  ];
+  while (x < ret.x1 - 900) { mods[i++ % mods.length](); x += 240 + (i % 3) * 60; }
+}
+const edgeNear = x => terrain.some(t => Math.abs(x - t.x0) < 34 || Math.abs(x - t.x1) < 34);
+const SIGN = [36, 44, 54, 40, 50], MARCH_R = [12, 17, 22, 14, 26, 19], LIFT = [96, 132, 112, 150, 104, 140];
+inPhase('return').forEach((p, i) => {
+  let x = ret.x0 + 300 + i * 230;
+  while (edgeNear(x)) x += 12;
+  blocks.push({ x, post: p, marcher: true, s: SIGN[i % 5], mr: MARCH_R[i % 6], lift: LIFT[i % 6] });
+});
+
+const fw = seg('framework', 300 + inPhase('framework').length * 280 + 200);
+inPhase('framework').forEach((p, i) => blocks.push({ x: fw.x0 + 300 + i * 280, post: p }));
+
+const bld = seg('build', 520 + inPhase('build').length * 240 + 200);
+inPhase('build').forEach((p, i) => blocks.push({ x: bld.x0 + 520 + i * 240, post: p, pin: true }));
+
+const stepPosts = inPhase('step');
+const nLocked = Math.max(0, TOTAL - 1 - POSTS.length);
+const nSteps = stepPosts.length + nLocked + 1, STEP_W = 200, RISE = 30;
+const stp = seg('step', 300 + nSteps * STEP_W + 700);
+const stairX0 = stp.x0 + 300;
+const flagX = stairX0 + (nSteps - 1) * STEP_W + 110;
+for (let k = 0; k < nSteps - 1; k++) {
+  const b = { x: stairX0 + k * STEP_W + 100 };
+  if (k < stepPosts.length) b.post = stepPosts[k]; else b.locked = POSTS.length + 1 + (k - stepPosts.length);
+  blocks.push(b);
+}
+const worldEnd = stp.x1;
+
+function groundY(x) {
+  if (x >= ret.x0 && x < ret.x1) { for (const t of terrain) if (x >= t.x0 && x < t.x1) return G - t.h; return G; }
+  if (x < stairX0) return G;
+  return G - RISE * Math.min(nSteps, Math.floor((x - stairX0) / STEP_W) + 1);
+}
+for (const b of blocks) { b.s = b.s || 44; if (!b.fly) b.y = groundY(b.x) - (b.lift || 126) - b.s / 2; }
+function phaseAt(x) {
+  for (const s of segs) if (x < s.x1) return x < s.x0 ? 'quiet' : s.id;
+  return 'step';
+}
+
+// ---------- state ----------
+const cv = $('c'), ctx = cv.getContext('2d');
+let dpr, S, W, H, camX = 0, camY = 0;
+let state = 'title', T = 0, found = 0, showArt = false;
+const P = { x: 200, y: 250, vy: 0, onGround: false, dir: 1, history: [] };
+const keys = { left: false, right: false };
+const banner = [], popups = [];
+
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+  cv.style.width = innerWidth + 'px'; cv.style.height = innerHeight + 'px';
+  S = Math.min(innerHeight / 560, innerWidth / 640);
+  W = innerWidth / S; H = innerHeight / S;
+}
+addEventListener('resize', resize); resize();
+
+// ---------- input ----------
+function jump() {
+  if (state !== 'play') return;
+  if (P.x < quiet.x0) P.vy = -430;
+  else if (P.onGround) { P.vy = -800; P.onGround = false; }
+}
+addEventListener('keydown', e => {
+  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') { e.preventDefault(); if (!e.repeat) jump(); }
+  if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+  if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
+  if (e.code === 'Enter' && state === 'title') start();
+});
+addEventListener('keyup', e => {
+  if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+  if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+});
+function hold(btn, key) {
+  btn.addEventListener('pointerdown', e => { e.preventDefault(); keys[key] = true; });
+  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) btn.addEventListener(ev, () => keys[key] = false);
+}
+hold($('backBtn'), 'left'); hold($('fastBtn'), 'right');
+$('jumpBtn').addEventListener('pointerdown', e => { e.preventDefault(); jump(); });
+
+cv.addEventListener('pointerdown', e => {
+  const x = e.clientX / S + camX, y = e.clientY / S + camY;
+  for (const b of blocks) {
+    if (b.hit && b.post && Math.abs(x - b.x) < b.s / 2 + 10 && Math.abs(y - b.y) < b.s / 2 + 10) return showPost(b.post);
+    if (b.hit && b.pin && Math.abs(x - b.x) < 40 && Math.abs(y - pinY(b)) < 28) return showPost(b.post);
+  }
+  jump();
+});
+
+// ---------- UI ----------
+$('total').textContent = POSTS.length;
+$('titleSub').textContent = `${POSTS.length} posts since Dec 2022, in ${PHASES.length} phases. Bump the blocks to find them.`;
+function start() { $('title').hidden = true; state = 'play'; }
+$('startBtn').onclick = start;
+$('artBtn').onclick = () => { showArt = !showArt; $('artBtn').setAttribute('aria-pressed', showArt); };
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmtDate = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+function showPost(p) {
+  const t = $('toast');
+  t.innerHTML = `<button class="close" aria-label="Close">×</button>
+    <div class="eyebrow">${esc(phaseName[p.phase])} · #${p.n} · ${fmtDate(p.date)}${p.paid ? ' · Paid' : ''}</div>
+    <h3>${esc(p.title)}</h3>${p.subtitle ? `<p>${esc(p.subtitle)}</p>` : ''}
+    <a class="btn" href="${esc(p.url)}" target="_blank" rel="noopener">Read →</a>`;
+  t.querySelector('.close').onclick = () => t.hidden = true;
+  t.hidden = false;
+}
+function showLocked(n) {
+  const t = $('toast');
+  t.innerHTML = `<button class="close" aria-label="Close">×</button><div class="eyebrow">#${n}</div><h3>Not written yet</h3><p>This step is still being built.</p>`;
+  t.querySelector('.close').onclick = () => t.hidden = true;
+  t.hidden = false;
+}
+
+function openGallery() {
+  $('galleryBody').innerHTML = PHASES.map(ph => {
+    const ps = inPhase(ph.id);
+    return `<h4>${esc(ph.name)}</h4><div class="eyebrow">${ps.length} post${ps.length === 1 ? '' : 's'}</div><ol>` +
+      ps.map(p => `<li><a href="${esc(p.url)}" target="_blank" rel="noopener"><span class="n">#${p.n}</span><span class="d">${fmtDate(p.date)}</span><span>${esc(p.title)}</span><span class="found">${blocks.find(b => b.post === p)?.hit ? '✓' : ''}</span></a></li>`).join('') + '</ol>';
+  }).join('');
+  $('gallery').hidden = false;
+}
+$('allBtn').onclick = openGallery; $('endAll').onclick = openGallery;
+$('closeGallery').onclick = () => $('gallery').hidden = true;
+$('again').onclick = () => location.reload();
+
+// ---------- update ----------
+function hitBlock(b) {
+  if (b.locked) { b.t = T; return showLocked(b.locked); }
+  if (!b.hit) {
+    b.hit = true; b.t = T; found++; $('found').textContent = found;
+    popups.push({ x: b.x, y: b.y, n: b.post.n, t: T });
+    if (b.fly) banner.push(b.post.n);
+  }
+  showPost(b.post);
+}
+
+function update(dt) {
+  T += dt;
+  if (state !== 'play') return;
+  const dir = keys.left === keys.right ? 0 : keys.left ? -1 : 1;
+  if (dir) P.dir = dir;
+  let nx = Math.min(flagX + 300, Math.max(160, P.x + dir * 300 * dt));
+  if (P.x >= quiet.x0 && groundY(nx + dir * R * 0.6) < P.y + R - 34) nx = P.x;   // bumped into a tall step: jump up
+  P.x = nx;
+
+  // warp pipe: skip the unseen gap in either direction
+  if (P.x > pipeX && P.x < ret.x0) {
+    if (dir >= 0) {
+      state = 'warp'; $('warp').hidden = false;
+      setTimeout(() => { $('warp').hidden = true; P.x = ret.x0 + 60; P.y = G - 260; P.vy = 0; state = 'play'; }, 1600);
+      return;
+    }
+    P.x = pipeX - 60;
+  }
+
+  if (P.x < quiet.x0) {                       // flying
+    P.vy = Math.min(P.vy + 1100 * dt, 520);
+    P.y += P.vy * dt;
+    if (P.y < 70) { P.y = 70; P.vy = 0; }
+    if (P.y > G - 50) { P.y = G - 50; P.vy = 0; }
+    P.onGround = false;
+    for (const b of blocks) if (b.fly && !b.hit && Math.hypot(P.x - b.x, P.y - b.y) < 58) hitBlock(b);
+    P.history.unshift({ x: P.x, y: P.y }); P.history.length = Math.min(P.history.length, 400);
+  } else {                                    // running
+    const prevHead = P.y - R;
+    P.vy += 2200 * dt; P.y += P.vy * dt;
+    const gy = groundY(P.x);
+    if (P.vy >= 0 && P.y + R >= gy) { P.y = gy - R; P.vy = 0; P.onGround = true; }
+    else if (P.y + R < gy - 1) P.onGround = false;
+    if (P.vy < 0) for (const b of blocks) {
+      if (b.fly || Math.abs(P.x - b.x) > b.s / 2 + R * 0.9) continue;
+      const bottom = b.y + b.s / 2;
+      if (prevHead >= bottom - 2 && P.y - R < bottom) { P.y = bottom + R; P.vy = 150; hitBlock(b); }
+    }
+  }
+
+  $('phase').textContent = phaseName[phaseAt(P.x)];
+  if (P.x >= flagX - 10 && state === 'play') {
+    state = 'end';
+    $('endText').textContent = `You found ${found} of ${POSTS.length} posts. Post #100 is the next step.`;
+    setTimeout(() => $('end').hidden = false, 900);
+  }
+}
+
+// ---------- drawing helpers ----------
+let artSeen;
+function art(name, x, y, w, h) {
+  if (!showArt || artSeen.has(name)) return;
+  artSeen.set(name, { x, y, w, h });
+}
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+
+function drawOrange(x, y, r, o = {}) {
+  const bob = o.bob || 0;
+  ctx.save(); ctx.translate(x, y + bob);
+  if (o.squash) ctx.scale(1 + o.squash, 1 - o.squash);
+  // feet
+  if (o.feet) {
+    ctx.strokeStyle = ORANGE_DK; ctx.lineWidth = r * 0.14; ctx.lineCap = 'round';
+    const s = Math.sin(T * 14) * r * 0.25;
+    ctx.beginPath(); ctx.moveTo(-r * 0.35, r * 0.8); ctx.lineTo(-r * 0.35 + s, r * 1.15);
+    ctx.moveTo(r * 0.35, r * 0.8); ctx.lineTo(r * 0.35 - s, r * 1.15); ctx.stroke();
+  }
+  ctx.fillStyle = ORANGE; ctx.strokeStyle = ORANGE_DK; ctx.lineWidth = r * 0.08;
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = LEAF; ctx.beginPath(); ctx.ellipse(r * 0.28, -r * 1.02, r * 0.34, r * 0.15, -0.5, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#6B4A2B'; ctx.lineWidth = r * 0.08; ctx.beginPath(); ctx.moveTo(0, -r * 0.9); ctx.lineTo(0.05 * r, -r * 1.12); ctx.stroke();
+  const f = (o.dir || 1) * r * 0.18;
+  ctx.fillStyle = '#1A1A1A';
+  if (o.sleep) {
+    ctx.strokeStyle = '#1A1A1A'; ctx.lineWidth = r * 0.07;
+    for (const ex of [-0.3, 0.3]) { ctx.beginPath(); ctx.arc(ex * r + f, -r * 0.05, r * 0.12, 0, Math.PI); ctx.stroke(); }
+  } else {
+    for (const ex of [-0.3, 0.3]) { ctx.beginPath(); ctx.arc(ex * r + f, -r * 0.1, r * 0.09, 0, Math.PI * 2); ctx.fill(); }
+    ctx.strokeStyle = '#1A1A1A'; ctx.lineWidth = r * 0.07;
+    ctx.beginPath(); ctx.arc(f, r * 0.15, r * 0.22, 0.2, Math.PI - 0.2); ctx.stroke();
+  }
+  ctx.fillStyle = 'rgba(240,90,90,.35)';
+  for (const ex of [-0.55, 0.55]) { ctx.beginPath(); ctx.arc(ex * r + f, r * 0.2, r * 0.13, 0, Math.PI * 2); ctx.fill(); }
+  ctx.restore();
+}
+
+function drawPlane(x, y, withPilot) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(Math.max(-0.35, Math.min(0.35, P.vy / 1400)) * (withPilot ? 1 : 0));
+  ctx.fillStyle = '#6FA8DC'; ctx.strokeStyle = '#2E5E8C'; ctx.lineWidth = 2;
+  rr(-46, -4, 30, 8, 3); ctx.fill(); ctx.stroke();                          // tail wing
+  ctx.beginPath(); ctx.moveTo(-44, -2); ctx.lineTo(-52, -22); ctx.lineTo(-36, -4); ctx.closePath(); ctx.fill(); ctx.stroke();
+  if (withPilot) drawOrange(0, -14, 14, { dir: 1 });
+  ctx.fillStyle = '#6FA8DC';
+  ctx.beginPath(); ctx.ellipse(0, 4, 46, 14, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();  // body
+  rr(-14, 6, 34, 8, 4); ctx.fillStyle = '#4C8BC4'; ctx.fill(); ctx.stroke();              // wing
+  ctx.fillStyle = '#2E5E8C'; ctx.fillRect(44, -2, 5, 12);
+  ctx.fillStyle = 'rgba(46,94,140,.6)'; const pr = 16 * Math.abs(Math.sin(T * 30));
+  ctx.fillRect(48, 4 - pr, 3, pr * 2);                                               // propeller
+  ctx.restore();
+}
+
+function drawBlock(b) {
+  const age = b.t != null ? T - b.t : 9;
+  const lift = age < 0.25 ? -Math.sin(age / 0.25 * Math.PI) * 10 : 0;
+  const z = b.s, x = b.x - z / 2, y = b.y - z / 2 + lift;
+  if (b.locked) {
+    ctx.setLineDash([5, 4]); ctx.strokeStyle = '#8A9BB0'; ctx.lineWidth = 2; rr(x, y, z, z, 8); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = '#8A9BB0'; ctx.font = '600 12px DM Sans'; ctx.textAlign = 'center';
+    ctx.fillText('#' + b.locked, b.x, b.y + 4 + lift); art('coming-soon block', x, y, z, z); return;
+  }
+  if (!b.hit) {
+    ctx.fillStyle = '#F5C542'; ctx.strokeStyle = '#B98A12'; ctx.lineWidth = 2.5; rr(x, y, z, z, 8); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.font = `700 ${Math.round(z * 0.6)}px DM Sans`; ctx.textAlign = 'center'; ctx.fillText('?', b.x, b.y + z * 0.22 + Math.sin(T * 3 + b.x) * 1.5);
+    art('? block', x, y, z, z);
+  } else {
+    ctx.fillStyle = '#fff'; ctx.strokeStyle = '#1F6FA8'; ctx.lineWidth = 2.5; rr(x, y, z, z, 8); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#1F6FA8'; ctx.font = `700 ${Math.round(z * 0.32)}px DM Sans`; ctx.textAlign = 'center'; ctx.fillText('#' + b.post.n, b.x, b.y + 5 + lift);
+    art('opened block', x, y, z, z);
+  }
+}
+
+function card(x, y, w, h, n, color) {
+  ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(0,0,0,.15)'; ctx.lineWidth = 1; rr(x, y, w, h, 4); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = color; ctx.fillRect(x + 3, y + 3, w - 6, h * 0.45);
+  ctx.fillStyle = '#1A1A1A'; ctx.font = `600 ${Math.round(h * 0.28)}px DM Sans`; ctx.textAlign = 'center'; ctx.fillText('#' + n, x + w / 2, y + h - 5);
+}
+const pinY = b => G - 330 + (b.post.n % 2) * 36;
+
+// ---------- scene pieces ----------
+function drawClouds() {
+  ctx.fillStyle = 'rgba(255,255,255,.8)';
+  const par = 0.5, step = 430;
+  for (let i = Math.floor(camX * par / step) - 1; i < (camX * par + W) / step + 2; i++) {
+    const x = i * step + camX * (1 - par), y = 60 + ((i * 97) % 5) * 28 + camY * 0.2;
+    ctx.beginPath(); ctx.ellipse(x, y, 50, 16, 0, 0, 7); ctx.ellipse(x + 26, y - 10, 30, 16, 0, 0, 7); ctx.ellipse(x - 24, y - 6, 24, 12, 0, 0, 7); ctx.fill();
+  }
+}
+
+function drawGround() {
+  const xs = [camX - 20];
+  for (const s of segs) xs.push(s.x0, s.x1);
+  for (let k = 0; k <= nSteps; k++) xs.push(stairX0 + k * STEP_W);
+  for (const t of terrain) xs.push(t.x0, t.x1);
+  xs.push(camX + W + 20);
+  const pts = [...new Set(xs)].filter(x => x >= camX - 20 && x <= camX + W + 20).sort((a, b) => a - b);
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i], b = pts[i + 1], mid = (a + b) / 2, gy = groundY(mid), ph = phaseAt(mid);
+    ctx.fillStyle = GROUND[ph]; ctx.fillRect(a, gy, b - a + 1, camY + H - gy + 10);
+    if (ph === 'step' && mid > stairX0) { ctx.strokeStyle = 'rgba(120,90,50,.35)'; ctx.lineWidth = 2; ctx.strokeRect(a, gy, b - a, 30); }
+  }
+}
+
+function drawCareer() {
+  if (camX > car.x1) return;
+  // banner of found articles trailing the plane
+  if (P.x < quiet.x0 && banner.length) {
+    // each card follows the plane's recent path, so the banner waves behind it
+    const pts = banner.map((n, i) => {
+      const h = P.history[Math.min(P.history.length - 1, 6 + i * 5)] || P;
+      return { n, x: P.x - 60 - (i + 1) * 30, y: h.y + Math.sin(T * 4 + i) * 3 };
+    });
+    ctx.strokeStyle = '#8A6A45'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(P.x - 48, P.y + 2);
+    for (const p of pts) ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    for (const p of pts) card(p.x - 13, p.y - 14, 26, 30, p.n, '#D9CCF0');
+    art('article banner', pts.at(-1).x - 13, P.y - 40, pts.length * 30, 60);
+  }
+}
+
+function drawQuiet() {
+  if (camX > ret.x0 || camX + W < quiet.x0) return;
+  const gx = hangarX;
+  ctx.fillStyle = '#A9B3C4'; ctx.strokeStyle = '#6E7A8E'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(gx, G); ctx.lineTo(gx, G - 150); ctx.quadraticCurveTo(gx + 200, G - 260, gx + 400, G - 150); ctx.lineTo(gx + 400, G); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#5C667A'; rr(gx + 60, G - 130, 280, 130, 6); ctx.fill();
+  drawPlane(gx + 200, G - 40, false);
+  drawOrange(gx + 110, G - 16, 14, { sleep: true });
+  ctx.fillStyle = '#fff'; ctx.font = '700 16px DM Sans'; ctx.textAlign = 'left';
+  ctx.fillText('z', gx + 128, G - 42 - (T * 10 % 10)); ctx.fillText('Z', gx + 138, G - 58 - (T * 10 % 10));
+  ctx.fillStyle = '#fff'; rr(gx + 130, G - 200, 140, 34, 6); ctx.fill();
+  ctx.fillStyle = '#1A1A1A'; ctx.font = '600 13px DM Sans'; ctx.textAlign = 'center'; ctx.fillText('Back in 18 months', gx + 200, G - 178);
+  art('hangar + parked plane', gx, G - 260, 400, 260); art('orange - sleeping', gx + 90, G - 60, 50, 50);
+  // warp pipe
+  ctx.fillStyle = '#6BBF73'; ctx.strokeStyle = '#3F8A4A'; ctx.lineWidth = 3;
+  rr(pipeX - 34, G - 70, 68, 70, 2); ctx.fill(); ctx.stroke(); rr(pipeX - 42, G - 86, 84, 22, 4); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#1A1A1A'; ctx.font = '600 12px DM Sans'; ctx.fillText('Dec 2024 →', pipeX, G - 100);
+  art('warp pipe', pipeX - 42, G - 110, 84, 110);
+}
+
+function drawReturn() {
+  if (camX > ret.x1 || camX + W < ret.x0) return;
+  // bunting
+  ctx.strokeStyle = '#C9A0AE'; ctx.lineWidth = 1.5; ctx.beginPath();
+  for (let x = Math.max(ret.x0, camX - 40); x < Math.min(ret.x1, camX + W + 40); x += 40) ctx.lineTo(x, 70 + Math.sin(x / 120) * 10);
+  ctx.stroke();
+  const cols = ['#F7A8B8', '#A8D8F0', '#F5C542', '#B8E0A8', '#C9B8F0'];
+  for (let x = Math.ceil(Math.max(ret.x0, camX - 40) / 40) * 40; x < Math.min(ret.x1, camX + W + 40); x += 40) {
+    ctx.fillStyle = cols[(x / 40) % 5 | 0]; const y = 70 + Math.sin(x / 120) * 10;
+    ctx.beginPath(); ctx.moveTo(x - 10, y); ctx.lineTo(x + 10, y); ctx.lineTo(x, y + 18); ctx.fill();
+  }
+  art('bunting', camX + 40, 60, 200, 40);
+  for (const b of blocks) if (b.marcher && Math.abs(b.x - camX - W / 2) < W) {
+    const bob = Math.abs(Math.sin(T * 5 + b.x)) * -4;
+    const gy = groundY(b.x), r = b.mr;
+    ctx.strokeStyle = '#8A6A45'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(b.x, b.y + b.s / 2); ctx.lineTo(b.x, gy - r * 1.6 + bob); ctx.stroke();
+    drawOrange(b.x - r * 0.4, gy - r * 1.1 + bob, r, { feet: true, dir: 1 });
+    art('orange - marching with sign (sizes S–L)', b.x - r * 1.5, b.y + b.s / 2, r * 3, gy - b.y - b.s / 2);
+  }
+}
+
+function drawParadeProps() {
+  for (const t of terrain) {
+    if (t.x1 < camX || t.x0 > camX + W) continue;
+    const w = t.x1 - t.x0, top = G - t.h;
+    if (t.kind === 'step') {
+      ctx.fillStyle = '#F7B6C5'; ctx.fillRect(t.x0, top, w, t.h); ctx.strokeStyle = '#C97F93'; ctx.lineWidth = 2; ctx.strokeRect(t.x0, top, w, t.h);
+      art('parade steps', t.x0, top, w, t.h);
+    } else if (t.kind === 'crate') {
+      for (let y = top; y < G - 1; y += 54) {
+        ctx.fillStyle = '#D9A866'; ctx.fillRect(t.x0 + 2, y, w - 4, 54); ctx.strokeStyle = '#9A6A32'; ctx.lineWidth = 3; ctx.strokeRect(t.x0 + 2, y, w - 4, 54);
+        ctx.beginPath(); ctx.moveTo(t.x0 + 4, y + 2); ctx.lineTo(t.x1 - 4, y + 52); ctx.stroke();
+      }
+      art('crate', t.x0, top, w, t.h);
+    } else if (t.kind === 'drum') {
+      ctx.fillStyle = '#E0524C'; ctx.fillRect(t.x0, top + 6, w, t.h - 6); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(t.x0 + w / 2, top + 6, w / 2, 8, 0, 0, 7); ctx.fill();
+      ctx.strokeStyle = '#F5C542'; ctx.lineWidth = 2; ctx.beginPath();
+      for (let k = 0; k <= 4; k++) ctx.lineTo(t.x0 + k * w / 4, top + (k % 2 ? t.h - 6 : 14));
+      ctx.stroke(); art('big drum', t.x0, top, w, t.h);
+    } else if (t.kind === 'float') {
+      ctx.fillStyle = '#A8D8F0'; rr(t.x0, top, w, t.h - 12, 10); ctx.fill();
+      ctx.fillStyle = '#fff';
+      for (let x = t.x0 + 16; x < t.x1 - 8; x += 32) { ctx.beginPath(); ctx.arc(x, top + 4, 12, 0, Math.PI); ctx.fill(); }
+      ctx.fillStyle = '#5C667A';
+      for (const x of [t.x0 + 40, t.x1 - 40]) { ctx.beginPath(); ctx.arc(x, G - 12, 12, 0, 7); ctx.fill(); }
+      // balloons tied to the float
+      for (const [dx, c] of [[20, '#F7A8B8'], [w - 24, '#C9B8F0']]) {
+        const bx = t.x0 + dx, by = top - 80 + Math.sin(T * 2 + dx) * 4;
+        ctx.strokeStyle = '#8A6A45'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(bx, top); ctx.lineTo(bx, by + 16); ctx.stroke();
+        ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(bx, by, 12, 16, 0, 0, 7); ctx.fill();
+      }
+      art('parade float + balloons', t.x0, top - 100, w, t.h + 100);
+    }
+  }
+}
+
+function drawFramework() {
+  if (camX > fw.x1 || camX + W < fw.x0) return;
+  ctx.strokeStyle = 'rgba(31,111,168,.12)'; ctx.lineWidth = 1;
+  const x0 = Math.max(fw.x0, camX), x1 = Math.min(fw.x1, camX + W);
+  ctx.beginPath();
+  for (let x = Math.ceil(x0 / 40) * 40; x < x1; x += 40) { ctx.moveTo(x, camY); ctx.lineTo(x, G); }
+  for (let y = Math.ceil(camY / 40) * 40; y < G; y += 40) { ctx.moveTo(x0, y); ctx.lineTo(x1, y); }
+  ctx.stroke();
+  art('blueprint sky', x0 + 20, camY + 90, 160, 60);
+  // clothesline of little notes
+  ctx.strokeStyle = '#6E7A8E'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(fw.x0 + 100, 130); ctx.lineTo(fw.x1 - 100, 130); ctx.stroke();
+  for (let x = fw.x0 + 160; x < fw.x1 - 120; x += 110) { ctx.save(); ctx.translate(x, 132); ctx.rotate(Math.sin(T * 2 + x) * 0.06); ctx.fillStyle = '#fff'; ctx.fillRect(-12, 0, 24, 30); ctx.fillStyle = '#C8DEF0'; for (let l = 0; l < 4; l++) ctx.fillRect(-8, 6 + l * 6, 16, 2); ctx.restore(); }
+  art('clothesline of 400-word notes', fw.x0 + 150, 125, 200, 45);
+  // drafting tables
+  for (let x = fw.x0 + 200; x < fw.x1; x += 900) {
+    ctx.strokeStyle = '#2E5E8C'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x - 30, G); ctx.lineTo(x, G - 60); ctx.lineTo(x + 30, G); ctx.stroke();
+    ctx.save(); ctx.translate(x, G - 64); ctx.rotate(-0.25); ctx.fillStyle = '#fff'; ctx.strokeStyle = '#2E5E8C'; ctx.fillRect(-45, -6, 90, 10); ctx.strokeRect(-45, -6, 90, 10); ctx.restore();
+    art('drafting table', x - 50, G - 80, 100, 80);
+  }
+}
+
+function drawBuild() {
+  if (camX > bld.x1 || camX + W < bld.x0) return;
+  // work wall
+  ctx.fillStyle = '#EAD7AE'; ctx.strokeStyle = '#B08B55'; ctx.lineWidth = 4;
+  const wx0 = Math.max(bld.x0 + 440, camX - 10), wx1 = Math.min(bld.x1 - 100, camX + W + 10);
+  if (wx1 > wx0) { ctx.fillRect(wx0, G - 360, wx1 - wx0, 120); ctx.beginPath(); ctx.moveTo(wx0, G - 360); ctx.lineTo(wx1, G - 360); ctx.moveTo(wx0, G - 240); ctx.lineTo(wx1, G - 240); ctx.stroke(); }
+  art('work wall', bld.x0 + 440 > camX ? bld.x0 + 440 : camX, G - 360, 220, 120);
+  for (const b of blocks) if (b.pin && b.hit) {
+    const age = T - b.t, k = Math.min(1, age / 0.5), y = b.y + (pinY(b) - b.y) * (1 - (1 - k) ** 3);
+    card(b.x - 34, y - 22, 68, 44, b.post.n, SKY.build.replace('F0', 'D8'));
+    ctx.fillStyle = '#E0524C'; ctx.beginPath(); ctx.arc(b.x, y - 20, 3.5, 0, 7); ctx.fill();
+  }
+  // workbench
+  const x = bld.x0 + 160;
+  ctx.fillStyle = '#B08B55'; ctx.fillRect(x, G - 70, 220, 14); ctx.fillRect(x + 12, G - 56, 10, 56); ctx.fillRect(x + 198, G - 56, 10, 56);
+  ctx.fillStyle = '#7C8A99'; ctx.fillRect(x + 30, G - 92, 40, 22); ctx.fillStyle = '#C8DEF0'; ctx.fillRect(x + 34, G - 89, 32, 16);
+  ctx.fillStyle = '#E0524C'; ctx.fillRect(x + 110, G - 78, 50, 8); ctx.fillStyle = '#5C667A'; ctx.fillRect(x + 150, G - 84, 18, 14);
+  drawOrange(x + 250, G - 20, 16, { dir: -1 });
+  art('workbench + tools', x, G - 95, 220, 95); art('orange - building', x + 232, G - 42, 38, 42);
+}
+
+function drawStep() {
+  if (camX + W < stp.x0) return;
+  const top = groundY(flagX);
+  ctx.strokeStyle = '#6E7A8E'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(flagX + 60, top); ctx.lineTo(flagX + 60, top - 200); ctx.stroke();
+  const wave = Math.sin(T * 4) * 4;
+  ctx.fillStyle = '#1F6FA8'; ctx.beginPath(); ctx.moveTo(flagX + 62, top - 198); ctx.quadraticCurveTo(flagX + 110, top - 190 + wave, flagX + 150, top - 180); ctx.lineTo(flagX + 62, top - 150); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.font = '700 20px DM Sans'; ctx.textAlign = 'center'; ctx.fillText('100', flagX + 95, top - 170);
+  art('flagpole #100', flagX + 55, top - 205, 100, 205);
+  art('staircase', stairX0 + STEP_W, groundY(stairX0 + STEP_W + 1), STEP_W * 2, 60);
+  if (state === 'end') {
+    const cast = [['career', -170], ['return', -110], ['framework', -50], ['build', 150], ['step', 210]];
+    cast.forEach(([, dx], i) => drawOrange(flagX + dx, top - 18 - Math.abs(Math.sin(T * 6 + i)) * 14, 16, { dir: dx < 0 ? 1 : -1 }));
+    art('all the oranges (finale)', flagX - 190, top - 60, 420, 60);
+  }
+}
+
+function draw() {
+  artSeen = new Map();
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.setTransform(dpr * S, 0, 0, dpr * S, -camX * dpr * S, -camY * dpr * S);
+  // sky per phase
+  for (const s of segs) {
+    const x0 = Math.max(s.x0, camX - 10), x1 = Math.min(s.id === 'quiet' ? ret.x0 : s.x1, camX + W + 10);
+    if (x1 > x0) { ctx.fillStyle = SKY[s.id]; ctx.fillRect(x0, camY - 10, x1 - x0 + 1, H + 20); }
+  }
+  if (camX + W > worldEnd) { ctx.fillStyle = SKY.step; ctx.fillRect(worldEnd, camY - 10, camX + W - worldEnd + 10, H + 20); }
+  drawClouds(); art('clouds', camX + W * 0.55, 40, 120, 50);
+  drawFramework(); drawBuild();
+  drawGround(); art('sky + ground per level', camX + 8, camY + H - 70, 160, 60);
+  drawParadeProps(); drawReturn();
+  drawQuiet(); drawStep();
+  for (const b of blocks) if (Math.abs(b.x - camX - W / 2) < W) drawBlock(b);
+  drawCareer();
+  // popping number
+  for (let i = popups.length - 1; i >= 0; i--) {
+    const p = popups[i], a = T - p.t; if (a > 0.9) { popups.splice(i, 1); continue; }
+    ctx.globalAlpha = 1 - a / 0.9; ctx.fillStyle = '#1F6FA8'; ctx.font = '700 18px DM Sans'; ctx.textAlign = 'center';
+    ctx.fillText('#' + p.n, p.x, p.y - 34 - a * 60); ctx.globalAlpha = 1;
+  }
+  // player
+  if (state === 'title' || P.x < quiet.x0) { drawPlane(P.x, P.y, true); art('plane + orange pilot', P.x - 55, P.y - 45, 110, 70); }
+  else if (state !== 'warp') {
+    drawOrange(P.x, P.y, R, { feet: P.onGround && (keys.left !== keys.right), dir: P.dir, squash: P.onGround ? 0 : -0.06, bob: P.onGround && keys.left !== keys.right ? -Math.abs(Math.sin(T * 12)) * 2 : 0 });
+    art(P.onGround ? 'orange - run' : 'orange - jump', P.x - R, P.y - R * 1.3, R * 2, R * 2.5);
+  }
+  // art labels
+  if (showArt) {
+    ctx.setLineDash([6, 4]); ctx.lineWidth = 2; ctx.font = '600 12px DM Sans'; ctx.textAlign = 'left';
+    for (const [name, r] of artSeen) {
+      ctx.strokeStyle = '#E0524C'; ctx.strokeRect(r.x, r.y, r.w, r.h);
+      const tw = ctx.measureText(name).width + 10;
+      ctx.fillStyle = '#E0524C'; ctx.fillRect(r.x, r.y - 18, tw, 18); ctx.fillStyle = '#fff'; ctx.fillText(name, r.x + 5, r.y - 5);
+    }
+    ctx.setLineDash([]);
+  }
+}
+
+// ---------- loop ----------
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.033, (now - last) / 1000); last = now;
+  if (state === 'title') { P.y = 250 + Math.sin(T * 2) * 20; T += dt; P.x = 200; }
+  else update(dt);
+  const tx = P.x - W * 0.3;
+  camX += (tx - camX) * Math.min(1, dt * 8);
+  const ty = Math.min(G + 80 - H, groundY(P.x) + 80 - H);
+  camY += (ty - camY) * Math.min(1, dt * 4);
+  draw();
+  requestAnimationFrame(frame);
+}
+camY = G + 80 - H;
+requestAnimationFrame(frame);
+</script>
+<div id="vlabel" style="position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:99;display:flex;align-items:center;gap:10px;background:#1F6FA8;color:#fff;font:600 12px 'DM Sans',sans-serif;padding:6px 8px 6px 14px;border-radius:999px;white-space:nowrap">
+  v3 · Parade terrain <a href="../" style="color:#fff">all versions</a>
+  <button onclick="this.parentNode.remove()" aria-label="Hide label" style="background:none;border:0;color:#fff;font-size:16px;line-height:1;cursor:pointer">×</button>
+</div>
+</body>
+</html>
