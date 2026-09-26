@@ -52,6 +52,14 @@
   #end h1 { font-size: 32px; margin: 4px 0; }
   #end p { margin: 4px 0; }
 
+  .menu { position: fixed; top: 56px; right: 16px; z-index: 20; width: min(300px, calc(100vw - 32px)); background: #fff; border-radius: 16px; padding: 8px; box-shadow: 0 8px 28px rgba(31,111,168,.2); }
+  .menu[hidden] { display: none; }
+  .menu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: 0; border-radius: 10px; background: none; text-align: left; font-size: 15px; color: var(--ink); }
+  .menu button:hover, .menu button:focus-visible { background: var(--pale); }
+  .menu button.here { background: var(--pale); font-weight: 600; }
+  .menu .ic { width: 22px; text-align: center; }
+  .menu .nm { flex: 1; }
+  .menu .ct { color: var(--deep); font-weight: 600; font-size: 13px; }
   #gallery { align-items: stretch; }
   #gallery .sheet { background: #fff; border-radius: 20px; max-width: 760px; width: 100%; margin: auto; max-height: 100%; overflow: auto; padding: 24px; }
   #gallery .top { display: flex; justify-content: space-between; align-items: center; position: sticky; top: -24px; background: #fff; padding: 8px 0; }
@@ -75,9 +83,12 @@
   <div class="spacer"></div>
   <div class="btns">
     <button id="artBtn" class="ghost" aria-pressed="false">Art pieces</button>
+    <button id="levelsBtn" class="ghost" aria-haspopup="true" aria-expanded="false">Levels</button>
     <button id="allBtn" class="ghost">All articles</button>
   </div>
 </header>
+
+<div id="levels" class="menu" hidden></div>
 
 <footer id="bar">
   <div id="article"><div class="text"><div class="hint">Collect articles and they'll show up here.</div></div></div>
@@ -313,6 +324,48 @@ cv.addEventListener('pointerdown', e => {
 $('total').textContent = POSTS.length;
 $('titleSub').textContent = `${POSTS.length} posts since Dec 2022, in ${PHASES.length} phases. Collect them all.`;
 function start() { $('title').hidden = true; state = 'play'; }
+
+// ---------- level menu: jump to any level from anywhere ----------
+const LEVELS = [
+  { id: 'career', ic: '✈️', hash: 'plane', x: () => 200 },
+  { id: 'quiet', ic: '💤', hash: 'hangar', x: () => quiet.x0 + 60 },
+  { id: 'return', ic: '🎉', hash: 'parade', x: () => ret.x0 + 60 },
+  { id: 'framework', ic: '🚚', hash: 'truck', x: () => fw.x0 + 60 },
+  { id: 'build', ic: '🔧', hash: 'workshop', x: () => doorX - 140 },
+  { id: 'step', ic: '🏁', hash: 'race', x: () => stp.x0 + 60 },
+];
+let warpTimer;
+function goToLevel(id) {
+  const lv = LEVELS.find(l => l.id === id); if (!lv) return;
+  clearTimeout(warpTimer);
+  for (const k of ['title', 'warp', 'end', 'gallery']) $(k).hidden = true;
+  $('controls').hidden = false; setMazeControls(false);
+  state = 'play';
+  P.x = lv.x(); P.vy = 0; P.trail.length = 0; P.history.length = 0;
+  P.y = modeAt(P.x) === 'fly' ? 250 : groundY(P.x) - footOf(modeAt(P.x));
+  P.onGround = modeAt(P.x) !== 'fly';
+  camX = P.x - W * 0.3;
+  setHud(id);
+  history.replaceState(null, '', '#' + lv.hash);
+}
+function renderLevels() {
+  const here = state === 'maze' ? 'build' : phaseAt(P.x);
+  $('levels').innerHTML = LEVELS.map(l => {
+    const all = blocks.filter(b => b.post && b.post.phase === l.id);
+    return `<button data-id="${l.id}" class="${l.id === here ? 'here' : ''}"><span class="ic">${l.ic}</span><span class="nm">${esc(phaseName[l.id])}</span><span class="ct">${all.filter(b => b.hit).length} / ${all.length}</span></button>`;
+  }).join('');
+}
+function toggleLevels(open) {
+  if (open) renderLevels();
+  $('levels').hidden = !open; $('levelsBtn').setAttribute('aria-expanded', open);
+}
+$('levelsBtn').onclick = e => { e.stopPropagation(); toggleLevels($('levels').hidden); };
+$('levels').onclick = e => {
+  const b = e.target.closest('button[data-id]'); if (!b) return;
+  toggleLevels(false); document.activeElement.blur(); goToLevel(b.dataset.id);
+};
+addEventListener('click', e => { if (!$('levels').hidden && !e.target.closest('#levels')) toggleLevels(false); });
+addEventListener('keydown', e => { if (e.code === 'Escape') toggleLevels(false); });
 $('startBtn').onclick = start;
 $('artBtn').onclick = () => { showArt = !showArt; $('artBtn').setAttribute('aria-pressed', showArt); };
 
@@ -433,7 +486,7 @@ function update(dt) {
   if (P.x > pipeX && P.x < ret.x0) {
     if (dir >= 0) {
       state = 'warp'; $('warp').hidden = false;
-      setTimeout(() => { $('warp').hidden = true; P.x = ret.x0 + 60; P.y = G - 260; P.vy = 0; P.trail.length = 0; state = 'play'; }, 1600);
+      warpTimer = setTimeout(() => { $('warp').hidden = true; P.x = ret.x0 + 60; P.y = G - 260; P.vy = 0; P.trail.length = 0; state = 'play'; }, 1600);
       return;
     }
     P.x = pipeX - 60;
@@ -976,6 +1029,10 @@ function frame(now) {
 }
 camY = G + 80 - H;
 setHud('career');
+{
+  const lv = LEVELS.find(l => '#' + l.hash === location.hash);
+  if (lv) goToLevel(lv.id);
+}
 requestAnimationFrame(frame);
 </script>
 </body>

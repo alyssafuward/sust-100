@@ -8,13 +8,13 @@ const els = {};
 Object.assign(global, {
   window: global, innerWidth: 1200, innerHeight: 700, devicePixelRatio: 1,
   document: { getElementById: id => els[id] ??= Object.assign(any(), { getContext: () => ctx, classList: { toggle() {} }, style: {}, offsetHeight: 68 }) },
-  addEventListener() {}, performance: { now: () => 0 }, setTimeout: fn => fn(),
+  addEventListener() {}, location: { hash: '' }, history: { replaceState() {} }, performance: { now: () => 0 }, setTimeout: fn => fn(),
 });
 let raf; global.requestAnimationFrame = fn => (raf = fn);
 eval(fs.readFileSync(path.join(root, 'data/posts.js'), 'utf8'));
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 eval(html.split('<script>')[1].split('</script>')[0] +
-  ';globalThis.g = { get state() { return state }, P, M, keys, blocks, MAZE, start, jump, get found() { return found } };');
+  ';globalThis.g = { get state() { return state }, P, M, keys, blocks, MAZE, start, jump, goToLevel, LEVELS, get found() { return found } };');
 
 // shortest walk through the maze that visits every page, then the exit
 const key = (c, r) => c + ',' + r;
@@ -49,6 +49,10 @@ while (g.state !== 'end' && frames++ < 60000) {
   raf(now += 16);
 }
 for (let i = 0; i < 300; i++) raf(now += 16);   // let the finale run
+const finished = g.state === 'end';
+// jump to every level from the menu and make sure the game keeps running
+Object.assign(g.keys, { right: false, left: false, up: false, down: false });
+for (const lv of g.LEVELS) { g.goToLevel(lv.id); for (let i = 0; i < 30; i++) raf(now += 16); if (g.state !== 'play') { console.log('stuck after jumping to', lv.id, g.state); process.exit(1); } }
 const by = k => g.blocks.filter(b => b[k] && b.hit).length;
-console.log({ state: g.state, found: g.found, plane: by('fly'), parade: by('marcher'), truck: by('car'), maze: by('maze'), frames });
-if (g.state !== 'end') process.exit(1);
+console.log({ finished, found: g.found, plane: by('fly'), parade: by('marcher'), truck: by('car'), maze: by('maze'), frames });
+if (!finished) process.exit(1);
