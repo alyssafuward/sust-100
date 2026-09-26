@@ -442,18 +442,18 @@ function update(dt) {
     for (const b of blocks) if (b.fly && !b.hit && Math.hypot(P.x - b.x, P.y - b.y) < 58) hitBlock(b);
     P.history.unshift({ x: P.x, y: P.y }); P.history.length = Math.min(P.history.length, 400);
   } else {
-    const prevHead = P.y - R;
     P.vy += 2200 * dt; P.y += P.vy * dt;
     const gy = groundY(P.x);
     if (P.vy >= 0 && P.y + foot >= gy) { P.y = gy - foot; P.vy = 0; P.onGround = true; }
     else if (P.y + foot < gy - 1) P.onGround = false;
     if (m === 'drive') {
       for (const b of blocks) if (b.car && !b.hit && Math.abs(P.x - b.x) < 55 + b.s / 2 && b.y + b.s / 2 > P.y - 34 && b.y - b.s / 2 < P.y + CAR_FOOT) hitBlock(b);
-    } else if (P.vy < 0) {
+    } else {
+      // touching a box from any side collects it
       for (const b of blocks) {
-        if (b.fly || b.car || b.maze || b.follow || Math.abs(P.x - b.x) > b.s / 2 + R * 0.9) continue;
-        const bottom = b.y + b.s / 2;
-        if (prevHead >= bottom - 2 && P.y - R < bottom) { P.y = bottom + R; P.vy = 150; hitBlock(b); }
+        if (b.fly || b.car || b.maze || b.follow || (b.hit && !b.locked)) continue;
+        if (b.locked && T - (b.t ?? -9) < 1.5) continue;
+        if (Math.abs(P.x - b.x) < b.s / 2 + R * 0.8 && Math.abs(P.y - b.y) < b.s / 2 + R * 0.8) hitBlock(b);
       }
     }
     const last = P.trail[0];
