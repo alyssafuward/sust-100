@@ -1,5 +1,8 @@
-"""Build data/posts.js from the Substack export: published posts, phase, and cover image."""
-import csv, json, os, re, time, urllib.error, urllib.request
+"""Build data/posts.js from the Substack export: published posts and phase.
+
+Pass --covers to also fetch each post's cover image from Substack (slow, rate-limited).
+"""
+import csv, json, os, re, sys, time, urllib.error, urllib.request
 
 BASE = "https://alyssafuward.substack.com/p/"
 PHASES = [  # (start date inclusive, id, name)
@@ -42,6 +45,9 @@ for i, r in enumerate(rows, 1):
 CACHE = "data/covers.json"
 covers = json.load(open(CACHE)) if os.path.exists(CACHE) else {}
 for p in posts:
+    if "--covers" not in sys.argv:
+        p["cover"] = None
+        continue
     if not covers.get(p["url"]):
         covers[p["url"]] = cover(p["url"])
         json.dump(covers, open(CACHE, "w"), indent=1)
