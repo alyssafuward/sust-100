@@ -19,11 +19,11 @@
   .ghost { background: rgba(255,255,255,.85); color: var(--deep); border: 1.5px solid var(--deep); border-radius: 999px; padding: 6px 14px; font-weight: 600; font-size: 13px; }
   .ghost[aria-pressed="true"] { background: var(--deep); color: #fff; }
 
-  #hud { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 12px; padding: 12px 16px; pointer-events: none; }
+  #hud { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 16px; pointer-events: none; }
   #hud > * { pointer-events: auto; }
   .count { background: #fff; border-radius: 999px; padding: 6px 14px; font-size: 14px; box-shadow: 0 1px 0 var(--rule); }
-  .count b { font-size: 16px; }
-  #phase { flex: 1; }
+  .count b { font-size: 16px; color: var(--deep); }
+  .spacer { flex: 1; }
   .btns { display: flex; gap: 8px; }
 
   #toast { position: fixed; left: 16px; bottom: 16px; width: min(360px, calc(100vw - 32px)); background: #fff; border-radius: 16px; padding: 14px 16px 16px; box-shadow: 0 6px 24px rgba(31,111,168,.18); }
@@ -32,19 +32,27 @@
   #toast .close { position: absolute; top: 8px; right: 10px; background: none; border: 0; font-size: 20px; color: var(--grey); }
   #toast a.btn { text-decoration: none; display: inline-block; font-size: 14px; }
 
-  #controls { position: fixed; right: 16px; bottom: 16px; display: flex; gap: 8px; }
-  #controls button { width: 52px; height: 52px; border-radius: 50%; border: 1.5px solid var(--deep); background: rgba(255,255,255,.85); color: var(--deep); font-size: 18px; font-weight: 700; user-select: none; -webkit-user-select: none; }
-  #controls #jumpBtn { width: 72px; border-radius: 26px; font-size: 14px; }
-  @media (max-width: 560px) { #toast { bottom: 84px; } }
+  #controls { position: fixed; right: 16px; bottom: 16px; display: grid; grid-template-columns: repeat(3, 52px); gap: 8px; }
+  #controls button { height: 52px; border-radius: 50%; border: 1.5px solid var(--deep); background: rgba(255,255,255,.85); color: var(--deep); font-size: 18px; font-weight: 700; user-select: none; -webkit-user-select: none; }
+  #controls #jumpBtn { border-radius: 26px; font-size: 14px; }
+  #controls [hidden], #controls[hidden] { display: none; }
+  #controls.maze { grid-template-areas: ". up ." "left down right"; }
+  #controls.maze #upBtn { grid-area: up; } #controls.maze #downBtn { grid-area: down; }
+  #controls.maze #backBtn { grid-area: left; } #controls.maze #fastBtn { grid-area: right; }
+  @media (max-width: 560px) { #toast { bottom: 140px; } }
 
   .overlay { position: fixed; inset: 0; background: rgba(242,248,253,.92); display: flex; align-items: center; justify-content: center; padding: 16px; }
-  .overlay[hidden], #toast[hidden] { display: none; }
+  .overlay[hidden], #toast[hidden], #end[hidden] { display: none; }
   .panel { background: #fff; border-radius: 20px; padding: 28px; max-width: 460px; width: 100%; text-align: center; box-shadow: 0 6px 30px rgba(31,111,168,.15); }
   .panel h1 { font-family: "DM Serif Display", serif; font-weight: 400; font-size: 44px; margin: 8px 0; }
   .panel p { color: var(--grey); line-height: 1.5; }
   .keys { font-size: 13px; color: var(--grey); margin-top: 16px; }
-  .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+  .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
   #warp .panel { background: none; box-shadow: none; }
+
+  #end { position: fixed; top: 64px; left: 50%; transform: translateX(-50%); width: min(420px, calc(100vw - 32px)); padding: 16px 20px; }
+  #end h1 { font-size: 32px; margin: 4px 0; }
+  #end p { margin: 4px 0; }
 
   #gallery { align-items: stretch; }
   #gallery .sheet { background: #fff; border-radius: 20px; max-width: 760px; width: 100%; margin: auto; max-height: 100%; overflow: auto; padding: 24px; }
@@ -64,8 +72,9 @@
 <canvas id="c"></canvas>
 
 <header id="hud">
-  <div class="count"><b id="found">0</b> / <span id="total"></span> found</div>
-  <div id="phase" class="eyebrow"></div>
+  <div class="count">Collected <b id="found">0</b> / <span id="total"></span></div>
+  <div class="count"><span id="phase" class="eyebrow"></span> <b id="phaseCount"></b></div>
+  <div class="spacer"></div>
   <div class="btns">
     <button id="artBtn" class="ghost" aria-pressed="false">Art pieces</button>
     <button id="allBtn" class="ghost">All articles</button>
@@ -75,9 +84,11 @@
 <div id="toast" hidden></div>
 
 <div id="controls">
+  <button id="upBtn" aria-label="Move up" hidden>▲</button>
   <button id="backBtn" aria-label="Move left">◀</button>
   <button id="jumpBtn">Jump</button>
   <button id="fastBtn" aria-label="Move right">▶</button>
+  <button id="downBtn" aria-label="Move down" hidden>▼</button>
 </div>
 
 <div id="title" class="overlay">
@@ -86,7 +97,7 @@
     <h1>100 posts</h1>
     <p id="titleSub"></p>
     <button id="startBtn" class="btn">Start</button>
-    <div class="keys">← → to move · Space or tap to jump / fly<br>Click any opened block to see its post again</div>
+    <div class="keys">← → to move · Space or tap to jump / fly<br>Click any collected article to see it again</div>
   </div>
 </div>
 
@@ -98,15 +109,13 @@
   </div>
 </div>
 
-<div id="end" class="overlay" hidden>
-  <div class="panel">
-    <div class="eyebrow">The top step</div>
-    <h1>Thank you</h1>
-    <p id="endText"></p>
-    <div class="row">
-      <button id="endAll" class="btn">All articles</button>
-      <button id="again" class="ghost">Play again</button>
-    </div>
+<div id="end" class="panel" hidden>
+  <div class="eyebrow">The top step</div>
+  <h1>Thank you</h1>
+  <p id="endText"></p>
+  <div class="row">
+    <button id="endAll" class="btn">All articles</button>
+    <button id="again" class="ghost">Play again</button>
   </div>
 </div>
 
@@ -123,9 +132,11 @@ const POSTS = window.POSTS, PHASES = window.PHASES;
 const TOTAL = 100;
 const G = 480;            // base ground line (world units)
 const R = 20;             // player radius
+const CAR_FOOT = 26;      // car center to road
 const ORANGE = '#F88C00', ORANGE_DK = '#D06E00', LEAF = '#5DA045';
 const SKY = { career: '#E8DFF7', quiet: '#E4E7EF', return: '#FCE5EB', framework: '#D5E7F7', build: '#DDF0E6', step: '#CDE3F4' };
-const GROUND = { career: '#B9D99F', quiet: '#C9CCD6', return: '#F3C7D2', framework: '#A9CBEA', build: '#D9B98C', step: '#E6D2B2' };
+const GROUND = { career: '#B9D99F', quiet: '#C9CCD6', return: '#F3C7D2', framework: '#9AA6B4', build: '#D9B98C', step: '#E6D2B2' };
+const FIREWORK = ['#F7A8B8', '#F5C542', '#A8D8F0', '#B8E0A8', '#C9B8F0', '#F88C00'];
 const phaseName = Object.fromEntries(PHASES.map(p => [p.id, p.name]));
 const $ = id => document.getElementById(id);
 
@@ -135,16 +146,18 @@ let wx = 0;
 function seg(id, len) { const s = { id, x0: wx, x1: wx + len }; segs.push(s); wx += len; return s; }
 const inPhase = id => POSTS.filter(p => p.phase === id);
 
+// 1. career: fly the plane
 const car = seg('career', 600 + inPhase('career').length * 260 + 200);
 inPhase('career').forEach((p, i) => blocks.push({ x: car.x0 + 600 + i * 260, y: 245 + 125 * Math.sin(i * 1.1), post: p, fly: true }));
 
+// quiet stretch: hangar + warp pipe
 const quiet = seg('quiet', 1100);
 const hangarX = quiet.x0 + 140, pipeX = quiet.x0 + 900;
 inPhase('quiet').forEach((p, i) => blocks.push({ x: quiet.x0 + 660 + i * 120, post: p }));
 wx += 400; // unseen gap the warp pipe skips over
 
+// 2. return: parade over little stairs, floats and crates (h = height above ground)
 const ret = seg('return', 300 + inPhase('return').length * 230 + 200);
-// parade terrain: little stairs, floats and crates (h = height above ground)
 const terrain = [];
 {
   let x = ret.x0 + 420, i = 0;
@@ -166,16 +179,58 @@ inPhase('return').forEach((p, i) => {
   blocks.push({ x, post: p, marcher: true, s: SIGN[i % 5], mr: MARCH_R[i % 6], lift: LIFT[i % 6] });
 });
 
-const fw = seg('framework', 300 + inPhase('framework').length * 280 + 200);
-inPhase('framework').forEach((p, i) => blocks.push({ x: fw.x0 + 300 + i * 280, post: p }));
+// 3. framework: drive the truck, articles pile up in the back
+const fw = seg('framework', 450 + inPhase('framework').length * 300 + 450);
+const driveX0 = fw.x0 + 200, driveX1 = fw.x1 - 200;
+const LANE = [42, 112, 168], LANE_OF = [0, 1, 2, 0, 2, 1];
+inPhase('framework').forEach((p, i) => blocks.push({ x: fw.x0 + 450 + i * 300, y: G - LANE[LANE_OF[i % 6]], post: p, car: true }));
 
-const bld = seg('build', 520 + inPhase('build').length * 240 + 200);
-inPhase('build').forEach((p, i) => blocks.push({ x: bld.x0 + 520 + i * 240, post: p, pin: true }));
+// 4. build: workshop door leads into a top-down maze
+const bld = seg('build', 900);
+const doorX = bld.x0 + 320;
+const MAZE = [
+  '#################',
+  'E...#.......#...#',
+  '#.#.#.###.#.#.#.#',
+  '#.#...#...#...#.#',
+  '#.###.#.#####.#.#',
+  '#...#...#.....#.#',
+  '###.###.#.###.#.#',
+  '#.....#...#.#...#',
+  '#.###.###.#.#.###',
+  '#...#.....#.....X',
+  '#################',
+];
+const MR = MAZE.length, MC = MAZE[0].length;
+const cellOf = ch => { for (let r = 0; r < MR; r++) { const c = MAZE[r].indexOf(ch); if (c >= 0) return { c, r }; } };
+const ENT = cellOf('E'), EXIT = cellOf('X');
+const isWall = (c, r) => {
+  if ((c === -1 && r === ENT.r) || (c === MC && r === EXIT.r)) return false;   // doorways out
+  return r < 0 || r >= MR || c < 0 || c >= MC || MAZE[r][c] === '#';
+};
+const dots = new Set();
+{
+  // spread the pages along the maze by walking distance from the entrance
+  const dist = new Map([[ENT.c + ',' + ENT.r, 0]]), q = [ENT], open = [];
+  while (q.length) {
+    const { c, r } = q.shift(), d = dist.get(c + ',' + r);
+    if (d > 1 && MAZE[r][c] === '.') open.push({ c, r });
+    for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nc = c + dc, nr = r + dr, k = nc + ',' + nr;
+      if (nc >= 0 && nc < MC && !isWall(nc, nr) && !dist.has(k)) { dist.set(k, d + 1); q.push({ c: nc, r: nr }); }
+    }
+  }
+  const ps = inPhase('build'), pick = k => Math.floor((k + 0.5) * open.length / ps.length);
+  const picked = new Set(ps.map((_, k) => pick(k)));
+  ps.forEach((p, k) => blocks.push({ ...open[pick(k)], post: p, maze: true }));
+  open.forEach((cell, k) => { if (!picked.has(k)) dots.add(cell.c + ',' + cell.r); });
+}
 
+// 5. a new step: staircase to #100
 const stepPosts = inPhase('step');
 const nLocked = Math.max(0, TOTAL - 1 - POSTS.length);
 const nSteps = stepPosts.length + nLocked + 1, STEP_W = 200, RISE = 30;
-const stp = seg('step', 300 + nSteps * STEP_W + 700);
+const stp = seg('step', 300 + nSteps * STEP_W + 800);
 const stairX0 = stp.x0 + 300;
 const flagX = stairX0 + (nSteps - 1) * STEP_W + 110;
 for (let k = 0; k < nSteps - 1; k++) {
@@ -190,19 +245,22 @@ function groundY(x) {
   if (x < stairX0) return G;
   return G - RISE * Math.min(nSteps, Math.floor((x - stairX0) / STEP_W) + 1);
 }
-for (const b of blocks) { b.s = b.s || 44; if (!b.fly) b.y = groundY(b.x) - (b.lift || 126) - b.s / 2; }
+for (const b of blocks) { b.s = b.s || 44; if (b.y == null && !b.maze) b.y = groundY(b.x) - (b.lift || 126) - b.s / 2; }
 function phaseAt(x) {
   for (const s of segs) if (x < s.x1) return x < s.x0 ? 'quiet' : s.id;
   return 'step';
 }
+const modeAt = x => x < quiet.x0 ? 'fly' : x >= driveX0 && x <= driveX1 ? 'drive' : 'run';
+const footOf = m => m === 'drive' ? CAR_FOOT : R;
 
 // ---------- state ----------
 const cv = $('c'), ctx = cv.getContext('2d');
 let dpr, S, W, H, camX = 0, camY = 0;
-let state = 'title', T = 0, found = 0, showArt = false;
-const P = { x: 200, y: 250, vy: 0, onGround: false, dir: 1, history: [] };
-const keys = { left: false, right: false };
-const banner = [], popups = [];
+let state = 'title', T = 0, found = 0, showArt = false, endT = 0, lastAxis = 'h';
+const P = { x: 200, y: 250, vy: 0, onGround: false, dir: 1, history: [], trail: [] };
+const M = { x: 0, y: 0, dir: 1, stack: [] };      // player inside the maze (cell units)
+const keys = { left: false, right: false, up: false, down: false };
+const banner = [], carPile = [], followers = [], popups = [], sparks = [];
 
 function resize() {
   dpr = window.devicePixelRatio || 1;
@@ -216,59 +274,56 @@ addEventListener('resize', resize); resize();
 // ---------- input ----------
 function jump() {
   if (state !== 'play') return;
-  if (P.x < quiet.x0) P.vy = -430;
-  else if (P.onGround) { P.vy = -800; P.onGround = false; }
+  const m = modeAt(P.x);
+  if (m === 'fly') P.vy = -430;
+  else if (P.onGround) { P.vy = m === 'drive' ? -720 : -800; P.onGround = false; }
 }
+const KEYMAP = { ArrowRight: 'right', KeyD: 'right', ArrowLeft: 'left', KeyA: 'left', ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down' };
 addEventListener('keydown', e => {
-  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') { e.preventDefault(); if (!e.repeat) jump(); }
-  if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
-  if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
+  const k = KEYMAP[e.code];
+  if (k) { keys[k] = true; lastAxis = k === 'up' || k === 'down' ? 'v' : 'h'; }
+  if (e.code === 'Space' || e.code.startsWith('Arrow')) e.preventDefault();
+  if ((e.code === 'Space' || k === 'up') && !e.repeat && state === 'play') jump();
   if (e.code === 'Enter' && state === 'title') start();
 });
-addEventListener('keyup', e => {
-  if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
-  if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
-});
+addEventListener('keyup', e => { const k = KEYMAP[e.code]; if (k) keys[k] = false; });
 function hold(btn, key) {
-  btn.addEventListener('pointerdown', e => { e.preventDefault(); keys[key] = true; });
+  btn.addEventListener('pointerdown', e => { e.preventDefault(); keys[key] = true; lastAxis = key === 'up' || key === 'down' ? 'v' : 'h'; });
   for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) btn.addEventListener(ev, () => keys[key] = false);
 }
-hold($('backBtn'), 'left'); hold($('fastBtn'), 'right');
+hold($('backBtn'), 'left'); hold($('fastBtn'), 'right'); hold($('upBtn'), 'up'); hold($('downBtn'), 'down');
 $('jumpBtn').addEventListener('pointerdown', e => { e.preventDefault(); jump(); });
 
 cv.addEventListener('pointerdown', e => {
+  if (state !== 'play') return;
   const x = e.clientX / S + camX, y = e.clientY / S + camY;
   for (const b of blocks) {
-    if (b.hit && b.post && Math.abs(x - b.x) < b.s / 2 + 10 && Math.abs(y - b.y) < b.s / 2 + 10) return showPost(b.post);
-    if (b.hit && b.pin && Math.abs(x - b.x) < 40 && Math.abs(y - pinY(b)) < 28) return showPost(b.post);
+    if (b.hit && b.post && !b.maze && !b.inCar && Math.abs(x - b.x) < b.s / 2 + 10 && Math.abs(y - b.y) < b.s / 2 + 10) return showPost(b.post);
   }
   jump();
 });
 
 // ---------- UI ----------
 $('total').textContent = POSTS.length;
-$('titleSub').textContent = `${POSTS.length} posts since Dec 2022, in ${PHASES.length} phases. Bump the blocks to find them.`;
+$('titleSub').textContent = `${POSTS.length} posts since Dec 2022, in ${PHASES.length} phases. Collect them all.`;
 function start() { $('title').hidden = true; state = 'play'; }
 $('startBtn').onclick = start;
 $('artBtn').onclick = () => { showArt = !showArt; $('artBtn').setAttribute('aria-pressed', showArt); };
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmtDate = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+function toast(html) {
+  const t = $('toast');
+  t.innerHTML = `<button class="close" aria-label="Close">×</button>` + html;
+  t.querySelector('.close').onclick = () => t.hidden = true;
+  t.hidden = false;
+}
 function showPost(p) {
-  const t = $('toast');
-  t.innerHTML = `<button class="close" aria-label="Close">×</button>
-    <div class="eyebrow">${esc(phaseName[p.phase])} · #${p.n} · ${fmtDate(p.date)}${p.paid ? ' · Paid' : ''}</div>
+  toast(`<div class="eyebrow">${esc(phaseName[p.phase])} · #${p.n} · ${fmtDate(p.date)}${p.paid ? ' · Paid' : ''}</div>
     <h3>${esc(p.title)}</h3>${p.subtitle ? `<p>${esc(p.subtitle)}</p>` : ''}
-    <a class="btn" href="${esc(p.url)}" target="_blank" rel="noopener">Read →</a>`;
-  t.querySelector('.close').onclick = () => t.hidden = true;
-  t.hidden = false;
+    <a class="btn" href="${esc(p.url)}" target="_blank" rel="noopener">Read →</a>`);
 }
-function showLocked(n) {
-  const t = $('toast');
-  t.innerHTML = `<button class="close" aria-label="Close">×</button><div class="eyebrow">#${n}</div><h3>Not written yet</h3><p>This step is still being built.</p>`;
-  t.querySelector('.close').onclick = () => t.hidden = true;
-  t.hidden = false;
-}
+const showLocked = n => toast(`<div class="eyebrow">#${n}</div><h3>Not written yet</h3><p>This step is still being built.</p>`);
 
 function openGallery() {
   $('galleryBody').innerHTML = PHASES.map(ph => {
@@ -282,37 +337,111 @@ $('allBtn').onclick = openGallery; $('endAll').onclick = openGallery;
 $('closeGallery').onclick = () => $('gallery').hidden = true;
 $('again').onclick = () => location.reload();
 
+function setHud(ph) {
+  const all = blocks.filter(b => b.post && b.post.phase === ph);
+  $('phase').textContent = phaseName[ph];
+  $('phaseCount').textContent = `${all.filter(b => b.hit).length} / ${all.length}`;
+}
+function setMazeControls(on) {
+  $('controls').classList.toggle('maze', on);
+  $('upBtn').hidden = $('downBtn').hidden = !on;
+  $('jumpBtn').hidden = on;
+}
+
 // ---------- update ----------
 function hitBlock(b) {
   if (b.locked) { b.t = T; return showLocked(b.locked); }
   if (!b.hit) {
     b.hit = true; b.t = T; found++; $('found').textContent = found;
-    popups.push({ x: b.x, y: b.y, n: b.post.n, t: T });
+    if (!b.maze) popups.push({ x: b.x, y: b.y, n: b.post.n, t: T });
     if (b.fly) banner.push(b.post.n);
+    if (b.car) { b.inCar = true; carPile.push(b.post.n); }
+    if (b.maze) M.stack.push(b.post.n);
+    if (b.marcher) { b.follow = true; b.fx = b.x; b.fy = groundY(b.x); followers.push(b); }
   }
   showPost(b.post);
 }
 
+function enterMaze(side) {
+  state = 'maze'; setMazeControls(true);
+  const cell = side === 'left' ? ENT : EXIT;
+  M.x = cell.c; M.y = cell.r; M.dir = side === 'left' ? 1 : -1;
+}
+function exitMaze(side) {
+  state = 'play'; setMazeControls(false);
+  P.x = side === 'left' ? doorX - 90 : doorX + 150; P.y = G - R; P.vy = 0; P.dir = side === 'left' ? -1 : 1;
+}
+
+// pac-man style: slide back to the corridor center, then move until a wall
+function mazeStep(ax, d, dist) {
+  const [a, b] = ax === 'h' ? ['x', 'y'] : ['y', 'x'];
+  const cellA = Math.round(M[a]), cellB = Math.round(M[b]);
+  const wallAt = ia => ax === 'h' ? isWall(ia, cellB) : isWall(cellB, ia);
+  if (wallAt(cellA + d) && (M[a] - cellA) * d >= -1e-6) return false;
+  const err = cellB - M[b];
+  if (Math.abs(err) > 1e-3) { M[b] += Math.sign(err) * Math.min(dist, Math.abs(err)); return true; }
+  let na = M[a] + d * dist;
+  if (wallAt(cellA + d) && (na - cellA) * d > 0) na = cellA;
+  M[a] = na;
+  if (ax === 'h') M.dir = d;
+  return true;
+}
+function updateMaze(dt) {
+  const h = (keys.right ? 1 : 0) - (keys.left ? 1 : 0), v = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
+  const order = lastAxis === 'v' ? [['v', v], ['h', h]] : [['h', h], ['v', v]];
+  for (const [ax, d] of order) if (d && mazeStep(ax, d, 4.5 * dt)) break;
+  const c = Math.round(M.x), r = Math.round(M.y);
+  dots.delete(c + ',' + r);
+  for (const b of blocks) if (b.maze && !b.hit && b.c === c && b.r === r) hitBlock(b);
+  if (M.x < -0.3) exitMaze('left');
+  else if (M.x > MC - 0.7) exitMaze('right');
+  setHud('build');
+}
+
+function updateFollowers(dt) {
+  const inParade = P.x >= ret.x0 && P.x < ret.x1;
+  followers.forEach((b, i) => {
+    let tx, ty;
+    if (inParade) {
+      const t = P.trail[(i + 1) * 14];
+      tx = t ? t.x : P.x - 42 * (i + 1) * P.dir; ty = t ? t.y : groundY(tx);
+    } else {           // wait in a line at whichever end of the parade you left from
+      tx = P.x >= ret.x1 ? ret.x1 - 60 - i * 30 : ret.x0 + 60 + i * 30; ty = groundY(tx);
+    }
+    const k = Math.min(1, dt * 10);
+    b.moving = Math.abs(tx - b.fx) > 1;
+    b.fx += (tx - b.fx) * k; b.fy += (ty - b.fy) * k;
+    b.x = b.fx; b.y = b.fy - b.mr * 2.2 - 46 - b.s / 2;
+  });
+}
+
 function update(dt) {
-  T += dt;
+  if (state === 'maze') return updateMaze(dt);
   if (state !== 'play') return;
   const dir = keys.left === keys.right ? 0 : keys.left ? -1 : 1;
   if (dir) P.dir = dir;
-  let nx = Math.min(flagX + 300, Math.max(160, P.x + dir * 300 * dt));
-  if (P.x >= quiet.x0 && groundY(nx + dir * R * 0.6) < P.y + R - 34) nx = P.x;   // bumped into a tall step: jump up
+  const prevX = P.x, prevMode = modeAt(P.x);
+  let nx = Math.min(flagX + 300, Math.max(160, P.x + dir * (prevMode === 'drive' ? 380 : 300) * dt));
+  if (prevMode !== 'fly' && groundY(nx + dir * R * 0.6) < P.y + footOf(prevMode) - 34) nx = P.x;   // tall step: jump up
   P.x = nx;
+
+  // workshop door → maze
+  if (prevX < doorX && P.x >= doorX) return enterMaze('left');
+  if (prevX > doorX + 60 && P.x <= doorX + 60) return enterMaze('right');
 
   // warp pipe: skip the unseen gap in either direction
   if (P.x > pipeX && P.x < ret.x0) {
     if (dir >= 0) {
       state = 'warp'; $('warp').hidden = false;
-      setTimeout(() => { $('warp').hidden = true; P.x = ret.x0 + 60; P.y = G - 260; P.vy = 0; state = 'play'; }, 1600);
+      setTimeout(() => { $('warp').hidden = true; P.x = ret.x0 + 60; P.y = G - 260; P.vy = 0; P.trail.length = 0; state = 'play'; }, 1600);
       return;
     }
     P.x = pipeX - 60;
   }
 
-  if (P.x < quiet.x0) {                       // flying
+  const m = modeAt(P.x), foot = footOf(m);
+  if (m !== prevMode && m !== 'fly' && P.onGround) P.y = groundY(P.x) - foot;
+  if (m === 'fly') {
     P.vy = Math.min(P.vy + 1100 * dt, 520);
     P.y += P.vy * dt;
     if (P.y < 70) { P.y = 70; P.vy = 0; }
@@ -320,23 +449,31 @@ function update(dt) {
     P.onGround = false;
     for (const b of blocks) if (b.fly && !b.hit && Math.hypot(P.x - b.x, P.y - b.y) < 58) hitBlock(b);
     P.history.unshift({ x: P.x, y: P.y }); P.history.length = Math.min(P.history.length, 400);
-  } else {                                    // running
+  } else {
     const prevHead = P.y - R;
     P.vy += 2200 * dt; P.y += P.vy * dt;
     const gy = groundY(P.x);
-    if (P.vy >= 0 && P.y + R >= gy) { P.y = gy - R; P.vy = 0; P.onGround = true; }
-    else if (P.y + R < gy - 1) P.onGround = false;
-    if (P.vy < 0) for (const b of blocks) {
-      if (b.fly || Math.abs(P.x - b.x) > b.s / 2 + R * 0.9) continue;
-      const bottom = b.y + b.s / 2;
-      if (prevHead >= bottom - 2 && P.y - R < bottom) { P.y = bottom + R; P.vy = 150; hitBlock(b); }
+    if (P.vy >= 0 && P.y + foot >= gy) { P.y = gy - foot; P.vy = 0; P.onGround = true; }
+    else if (P.y + foot < gy - 1) P.onGround = false;
+    if (m === 'drive') {
+      for (const b of blocks) if (b.car && !b.hit && Math.abs(P.x - b.x) < 55 + b.s / 2 && b.y + b.s / 2 > P.y - 34 && b.y - b.s / 2 < P.y + CAR_FOOT) hitBlock(b);
+    } else if (P.vy < 0) {
+      for (const b of blocks) {
+        if (b.fly || b.car || b.maze || b.follow || Math.abs(P.x - b.x) > b.s / 2 + R * 0.9) continue;
+        const bottom = b.y + b.s / 2;
+        if (prevHead >= bottom - 2 && P.y - R < bottom) { P.y = bottom + R; P.vy = 150; hitBlock(b); }
+      }
     }
+    const last = P.trail[0];
+    if (!last || Math.abs(last.x - P.x) + Math.abs(last.y - (P.y + R)) > 3) { P.trail.unshift({ x: P.x, y: P.y + R }); P.trail.length = Math.min(P.trail.length, 1000); }
   }
+  updateFollowers(dt);
+  setHud(phaseAt(P.x));
 
-  $('phase').textContent = phaseName[phaseAt(P.x)];
-  if (P.x >= flagX - 10 && state === 'play') {
-    state = 'end';
-    $('endText').textContent = `You found ${found} of ${POSTS.length} posts. Post #100 is the next step.`;
+  if (P.x >= flagX - 10) {
+    state = 'end'; endT = T;
+    $('toast').hidden = true; $('controls').hidden = true;
+    $('endText').textContent = `You collected ${found} of ${POSTS.length} posts. Post #100 is the next step.`;
     setTimeout(() => $('end').hidden = false, 900);
   }
 }
@@ -350,13 +487,11 @@ function art(name, x, y, w, h) {
 function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
 
 function drawOrange(x, y, r, o = {}) {
-  const bob = o.bob || 0;
-  ctx.save(); ctx.translate(x, y + bob);
+  ctx.save(); ctx.translate(x, y + (o.bob || 0));
   if (o.squash) ctx.scale(1 + o.squash, 1 - o.squash);
-  // feet
   if (o.feet) {
     ctx.strokeStyle = ORANGE_DK; ctx.lineWidth = r * 0.14; ctx.lineCap = 'round';
-    const s = Math.sin(T * 14) * r * 0.25;
+    const s = o.still ? 0 : Math.sin(T * 14) * r * 0.25;
     ctx.beginPath(); ctx.moveTo(-r * 0.35, r * 0.8); ctx.lineTo(-r * 0.35 + s, r * 1.15);
     ctx.moveTo(r * 0.35, r * 0.8); ctx.lineTo(r * 0.35 - s, r * 1.15); ctx.stroke();
   }
@@ -365,13 +500,11 @@ function drawOrange(x, y, r, o = {}) {
   ctx.fillStyle = LEAF; ctx.beginPath(); ctx.ellipse(r * 0.28, -r * 1.02, r * 0.34, r * 0.15, -0.5, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = '#6B4A2B'; ctx.lineWidth = r * 0.08; ctx.beginPath(); ctx.moveTo(0, -r * 0.9); ctx.lineTo(0.05 * r, -r * 1.12); ctx.stroke();
   const f = (o.dir || 1) * r * 0.18;
-  ctx.fillStyle = '#1A1A1A';
+  ctx.fillStyle = '#1A1A1A'; ctx.strokeStyle = '#1A1A1A'; ctx.lineWidth = r * 0.07;
   if (o.sleep) {
-    ctx.strokeStyle = '#1A1A1A'; ctx.lineWidth = r * 0.07;
     for (const ex of [-0.3, 0.3]) { ctx.beginPath(); ctx.arc(ex * r + f, -r * 0.05, r * 0.12, 0, Math.PI); ctx.stroke(); }
   } else {
     for (const ex of [-0.3, 0.3]) { ctx.beginPath(); ctx.arc(ex * r + f, -r * 0.1, r * 0.09, 0, Math.PI * 2); ctx.fill(); }
-    ctx.strokeStyle = '#1A1A1A'; ctx.lineWidth = r * 0.07;
     ctx.beginPath(); ctx.arc(f, r * 0.15, r * 0.22, 0.2, Math.PI - 0.2); ctx.stroke();
   }
   ctx.fillStyle = 'rgba(240,90,90,.35)';
@@ -379,19 +512,65 @@ function drawOrange(x, y, r, o = {}) {
   ctx.restore();
 }
 
-function drawPlane(x, y, withPilot) {
-  ctx.save(); ctx.translate(x, y); ctx.rotate(Math.max(-0.35, Math.min(0.35, P.vy / 1400)) * (withPilot ? 1 : 0));
+function drawPlane(x, y, withPilot, tilt = 0) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(tilt);
   ctx.fillStyle = '#6FA8DC'; ctx.strokeStyle = '#2E5E8C'; ctx.lineWidth = 2;
-  rr(-46, -4, 30, 8, 3); ctx.fill(); ctx.stroke();                          // tail wing
+  rr(-46, -4, 30, 8, 3); ctx.fill(); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(-44, -2); ctx.lineTo(-52, -22); ctx.lineTo(-36, -4); ctx.closePath(); ctx.fill(); ctx.stroke();
   if (withPilot) drawOrange(0, -14, 14, { dir: 1 });
   ctx.fillStyle = '#6FA8DC';
-  ctx.beginPath(); ctx.ellipse(0, 4, 46, 14, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();  // body
-  rr(-14, 6, 34, 8, 4); ctx.fillStyle = '#4C8BC4'; ctx.fill(); ctx.stroke();              // wing
+  ctx.beginPath(); ctx.ellipse(0, 4, 46, 14, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  rr(-14, 6, 34, 8, 4); ctx.fillStyle = '#4C8BC4'; ctx.fill(); ctx.stroke();
   ctx.fillStyle = '#2E5E8C'; ctx.fillRect(44, -2, 5, 12);
   ctx.fillStyle = 'rgba(46,94,140,.6)'; const pr = 16 * Math.abs(Math.sin(T * 30));
-  ctx.fillRect(48, 4 - pr, 3, pr * 2);                                               // propeller
+  ctx.fillRect(48, 4 - pr, 3, pr * 2);
   ctx.restore();
+}
+
+function card(x, y, w, h, n, color, rot = 0) {
+  ctx.save(); ctx.translate(x + w / 2, y + h / 2); ctx.rotate(rot);
+  ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(0,0,0,.18)'; ctx.lineWidth = 1; rr(-w / 2, -h / 2, w, h, 3); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = color; ctx.fillRect(-w / 2 + 3, -h / 2 + 3, w - 6, h * 0.4);
+  ctx.fillStyle = '#1A1A1A'; ctx.font = `600 ${Math.round(Math.min(w * 0.42, h * 0.36))}px DM Sans`; ctx.textAlign = 'center'; ctx.fillText('#' + n, 0, h / 2 - 4);
+  ctx.restore();
+}
+
+// articles tied behind the plane; pts are where each card hangs
+function drawBanner(tailX, tailY, pts) {
+  if (!pts.length) return;
+  ctx.strokeStyle = '#8A6A45'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(tailX, tailY);
+  for (const p of pts) ctx.lineTo(p.x, p.y);
+  ctx.stroke();
+  for (const p of pts) card(p.x - 13, p.y - 14, 26, 30, p.n, '#D9CCF0');
+  art('article banner', pts.at(-1).x - 13, tailY - 40, pts.length * 30, 60);
+}
+
+// pickup truck facing right; bottom = road
+function drawCar(x, bottom, withDriver, pile) {
+  ctx.save(); ctx.translate(x, bottom);
+  // pile of articles in the bed, stacking up
+  pile.forEach((n, k) => {
+    const col = k % 3, row = Math.floor(k / 3);
+    card(-54 + col * 20 + (row % 2) * 8, -48 - row * 13, 22, 17, n, '#C8DEF0', Math.sin(k * 2.3) * 0.18);
+  });
+  ctx.fillStyle = '#F2C94C'; ctx.strokeStyle = '#B98A12'; ctx.lineWidth = 2.5;
+  rr(-60, -34, 72, 20, 4); ctx.fill(); ctx.stroke();
+  if (withDriver) drawOrange(30, -44, 12, { dir: 1 });
+  ctx.fillStyle = '#F2C94C'; ctx.beginPath(); ctx.moveTo(10, -14); ctx.lineTo(10, -58); ctx.lineTo(40, -58); ctx.lineTo(54, -34); ctx.lineTo(60, -34); ctx.lineTo(60, -14); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = 'rgba(200,222,240,.55)'; ctx.beginPath(); ctx.moveTo(16, -36); ctx.lineTo(16, -53); ctx.lineTo(37, -53); ctx.lineTo(48, -36); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#F2C94C'; rr(-60, -18, 120, 8, 3); ctx.fill(); ctx.stroke();
+  for (const wx_ of [-36, 34]) { ctx.fillStyle = '#3D4655'; ctx.beginPath(); ctx.arc(wx_, -10, 11, 0, 7); ctx.fill(); ctx.fillStyle = '#C9CCD6'; ctx.beginPath(); ctx.arc(wx_, -10, 4, 0, 7); ctx.fill(); }
+  ctx.restore();
+  art(withDriver ? 'truck + orange driver' : 'truck (parked)', x - 62, bottom - 62, 124, 62);
+  if (pile.length) art('article pile in truck bed', x - 58, bottom - 50 - Math.ceil(pile.length / 3) * 13, 70, Math.ceil(pile.length / 3) * 13 + 4);
+}
+
+function drawPageStack(x, top, n, w) {
+  for (let k = 0; k < n; k++) {
+    const sway = Math.sin(T * 3 + k * 0.4) * k * 0.35;
+    ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 1;
+    rr(x - w / 2 + sway, top - (k + 1) * w * 0.18, w, w * 0.16, 2); ctx.fill(); ctx.stroke();
+  }
 }
 
 function drawBlock(b) {
@@ -409,17 +588,17 @@ function drawBlock(b) {
     art('? block', x, y, z, z);
   } else {
     ctx.fillStyle = '#fff'; ctx.strokeStyle = '#1F6FA8'; ctx.lineWidth = 2.5; rr(x, y, z, z, 8); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#1F6FA8'; ctx.font = `700 ${Math.round(z * 0.32)}px DM Sans`; ctx.textAlign = 'center'; ctx.fillText('#' + b.post.n, b.x, b.y + 5 + lift);
+    ctx.fillStyle = '#1F6FA8'; ctx.font = `700 ${Math.round(z * 0.32)}px DM Sans`; ctx.textAlign = 'center'; ctx.fillText('#' + b.post.n, b.x, b.y + z * 0.12 + lift);
     art('opened block', x, y, z, z);
   }
 }
 
-function card(x, y, w, h, n, color) {
-  ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(0,0,0,.15)'; ctx.lineWidth = 1; rr(x, y, w, h, 4); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = color; ctx.fillRect(x + 3, y + 3, w - 6, h * 0.45);
-  ctx.fillStyle = '#1A1A1A'; ctx.font = `600 ${Math.round(h * 0.28)}px DM Sans`; ctx.textAlign = 'center'; ctx.fillText('#' + n, x + w / 2, y + h - 5);
+function drawMarcher(b, x, feetY, moving, hop = 0) {
+  const r = b.mr, bob = moving ? -Math.abs(Math.sin(T * 10 + b.x * 0.01)) * 3 : 0;
+  const bodyY = feetY - r * 1.15 + bob - hop;
+  ctx.strokeStyle = '#8A6A45'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x, b.y + b.s / 2); ctx.lineTo(x, bodyY - r * 0.5); ctx.stroke();
+  drawOrange(x - r * 0.4, bodyY, r, { feet: true, still: !moving, dir: 1 });
 }
-const pinY = b => G - 330 + (b.post.n % 2) * 36;
 
 // ---------- scene pieces ----------
 function drawClouds() {
@@ -445,23 +624,6 @@ function drawGround() {
   }
 }
 
-function drawCareer() {
-  if (camX > car.x1) return;
-  // banner of found articles trailing the plane
-  if (P.x < quiet.x0 && banner.length) {
-    // each card follows the plane's recent path, so the banner waves behind it
-    const pts = banner.map((n, i) => {
-      const h = P.history[Math.min(P.history.length - 1, 6 + i * 5)] || P;
-      return { n, x: P.x - 60 - (i + 1) * 30, y: h.y + Math.sin(T * 4 + i) * 3 };
-    });
-    ctx.strokeStyle = '#8A6A45'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(P.x - 48, P.y + 2);
-    for (const p of pts) ctx.lineTo(p.x, p.y);
-    ctx.stroke();
-    for (const p of pts) card(p.x - 13, p.y - 14, 26, 30, p.n, '#D9CCF0');
-    art('article banner', pts.at(-1).x - 13, P.y - 40, pts.length * 30, 60);
-  }
-}
-
 function drawQuiet() {
   if (camX > ret.x0 || camX + W < quiet.x0) return;
   const gx = hangarX;
@@ -475,32 +637,38 @@ function drawQuiet() {
   ctx.fillStyle = '#fff'; rr(gx + 130, G - 200, 140, 34, 6); ctx.fill();
   ctx.fillStyle = '#1A1A1A'; ctx.font = '600 13px DM Sans'; ctx.textAlign = 'center'; ctx.fillText('Back in 18 months', gx + 200, G - 178);
   art('hangar + parked plane', gx, G - 260, 400, 260); art('orange - sleeping', gx + 90, G - 60, 50, 50);
-  // warp pipe
   ctx.fillStyle = '#6BBF73'; ctx.strokeStyle = '#3F8A4A'; ctx.lineWidth = 3;
   rr(pipeX - 34, G - 70, 68, 70, 2); ctx.fill(); ctx.stroke(); rr(pipeX - 42, G - 86, 84, 22, 4); ctx.fill(); ctx.stroke();
   ctx.fillStyle = '#1A1A1A'; ctx.font = '600 12px DM Sans'; ctx.fillText('Dec 2024 →', pipeX, G - 100);
   art('warp pipe', pipeX - 42, G - 110, 84, 110);
 }
 
-function drawReturn() {
-  if (camX > ret.x1 || camX + W < ret.x0) return;
-  // bunting
+function drawBunting(x0, x1, y0) {
   ctx.strokeStyle = '#C9A0AE'; ctx.lineWidth = 1.5; ctx.beginPath();
-  for (let x = Math.max(ret.x0, camX - 40); x < Math.min(ret.x1, camX + W + 40); x += 40) ctx.lineTo(x, 70 + Math.sin(x / 120) * 10);
+  for (let x = x0; x < x1; x += 40) ctx.lineTo(x, y0 + Math.sin(x / 120) * 10);
   ctx.stroke();
-  const cols = ['#F7A8B8', '#A8D8F0', '#F5C542', '#B8E0A8', '#C9B8F0'];
-  for (let x = Math.ceil(Math.max(ret.x0, camX - 40) / 40) * 40; x < Math.min(ret.x1, camX + W + 40); x += 40) {
-    ctx.fillStyle = cols[(x / 40) % 5 | 0]; const y = 70 + Math.sin(x / 120) * 10;
+  for (let x = Math.ceil(x0 / 40) * 40; x < x1; x += 40) {
+    ctx.fillStyle = FIREWORK[(x / 40) % 5 | 0]; const y = y0 + Math.sin(x / 120) * 10;
     ctx.beginPath(); ctx.moveTo(x - 10, y); ctx.lineTo(x + 10, y); ctx.lineTo(x, y + 18); ctx.fill();
   }
+}
+
+function drawReturn() {
+  if (camX > ret.x1 || camX + W < ret.x0) return;
+  drawBunting(Math.max(ret.x0, camX - 40), Math.min(ret.x1, camX + W + 40), 70);
   art('bunting', camX + 40, 60, 200, 40);
-  for (const b of blocks) if (b.marcher && Math.abs(b.x - camX - W / 2) < W) {
-    const bob = Math.abs(Math.sin(T * 5 + b.x)) * -4;
-    const gy = groundY(b.x), r = b.mr;
-    ctx.strokeStyle = '#8A6A45'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(b.x, b.y + b.s / 2); ctx.lineTo(b.x, gy - r * 1.6 + bob); ctx.stroke();
-    drawOrange(b.x - r * 0.4, gy - r * 1.1 + bob, r, { feet: true, dir: 1 });
-    art('orange - marching with sign (sizes S–L)', b.x - r * 1.5, b.y + b.s / 2, r * 3, gy - b.y - b.s / 2);
+  for (const b of blocks) if (b.marcher && !b.follow && Math.abs(b.x - camX - W / 2) < W) {
+    drawMarcher(b, b.x, groundY(b.x), true);
+    art('orange - marching with sign (sizes S–L)', b.x - b.mr * 1.5, b.y + b.s / 2, b.mr * 3, groundY(b.x) - b.y - b.s / 2);
   }
+}
+function drawFollowers() {
+  for (let i = followers.length - 1; i >= 0; i--) {
+    const b = followers[i];
+    drawMarcher(b, b.fx, b.fy, b.moving);
+    drawBlock(b);
+  }
+  if (followers.length) art('orange - following with sign', followers[0].fx - 30, followers[0].y - 25, 60, followers[0].fy - followers[0].y + 25);
 }
 
 function drawParadeProps() {
@@ -527,7 +695,6 @@ function drawParadeProps() {
       for (let x = t.x0 + 16; x < t.x1 - 8; x += 32) { ctx.beginPath(); ctx.arc(x, top + 4, 12, 0, Math.PI); ctx.fill(); }
       ctx.fillStyle = '#5C667A';
       for (const x of [t.x0 + 40, t.x1 - 40]) { ctx.beginPath(); ctx.arc(x, G - 12, 12, 0, 7); ctx.fill(); }
-      // balloons tied to the float
       for (const [dx, c] of [[20, '#F7A8B8'], [w - 24, '#C9B8F0']]) {
         const bx = t.x0 + dx, by = top - 80 + Math.sin(T * 2 + dx) * 4;
         ctx.strokeStyle = '#8A6A45'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(bx, top); ctx.lineTo(bx, by + 16); ctx.stroke();
@@ -547,37 +714,55 @@ function drawFramework() {
   for (let y = Math.ceil(camY / 40) * 40; y < G; y += 40) { ctx.moveTo(x0, y); ctx.lineTo(x1, y); }
   ctx.stroke();
   art('blueprint sky', x0 + 20, camY + 90, 160, 60);
-  // clothesline of little notes
-  ctx.strokeStyle = '#6E7A8E'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(fw.x0 + 100, 130); ctx.lineTo(fw.x1 - 100, 130); ctx.stroke();
-  for (let x = fw.x0 + 160; x < fw.x1 - 120; x += 110) { ctx.save(); ctx.translate(x, 132); ctx.rotate(Math.sin(T * 2 + x) * 0.06); ctx.fillStyle = '#fff'; ctx.fillRect(-12, 0, 24, 30); ctx.fillStyle = '#C8DEF0'; for (let l = 0; l < 4; l++) ctx.fillRect(-8, 6 + l * 6, 16, 2); ctx.restore(); }
-  art('clothesline of 400-word notes', fw.x0 + 150, 125, 200, 45);
-  // drafting tables
-  for (let x = fw.x0 + 200; x < fw.x1; x += 900) {
-    ctx.strokeStyle = '#2E5E8C'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x - 30, G); ctx.lineTo(x, G - 60); ctx.lineTo(x + 30, G); ctx.stroke();
-    ctx.save(); ctx.translate(x, G - 64); ctx.rotate(-0.25); ctx.fillStyle = '#fff'; ctx.strokeStyle = '#2E5E8C'; ctx.fillRect(-45, -6, 90, 10); ctx.strokeRect(-45, -6, 90, 10); ctx.restore();
-    art('drafting table', x - 50, G - 80, 100, 80);
-  }
+}
+function drawRoad() {
+  if (camX > fw.x1 || camX + W < fw.x0) return;
+  const x0 = Math.max(fw.x0, camX), x1 = Math.min(fw.x1, camX + W);
+  ctx.fillStyle = '#F2F8FD';
+  for (let x = Math.ceil(x0 / 60) * 60; x < x1; x += 60) ctx.fillRect(x, G + 22, 30, 5);
+  art('road', x0 + 10, G, 160, 40);
 }
 
 function drawBuild() {
   if (camX > bld.x1 || camX + W < bld.x0) return;
-  // work wall
-  ctx.fillStyle = '#EAD7AE'; ctx.strokeStyle = '#B08B55'; ctx.lineWidth = 4;
-  const wx0 = Math.max(bld.x0 + 440, camX - 10), wx1 = Math.min(bld.x1 - 100, camX + W + 10);
-  if (wx1 > wx0) { ctx.fillRect(wx0, G - 360, wx1 - wx0, 120); ctx.beginPath(); ctx.moveTo(wx0, G - 360); ctx.lineTo(wx1, G - 360); ctx.moveTo(wx0, G - 240); ctx.lineTo(wx1, G - 240); ctx.stroke(); }
-  art('work wall', bld.x0 + 440 > camX ? bld.x0 + 440 : camX, G - 360, 220, 120);
-  for (const b of blocks) if (b.pin && b.hit) {
-    const age = T - b.t, k = Math.min(1, age / 0.5), y = b.y + (pinY(b) - b.y) * (1 - (1 - k) ** 3);
-    card(b.x - 34, y - 22, 68, 44, b.post.n, SKY.build.replace('F0', 'D8'));
-    ctx.fillStyle = '#E0524C'; ctx.beginPath(); ctx.arc(b.x, y - 20, 3.5, 0, 7); ctx.fill();
+  // workshop building with a door into the maze
+  const x = doorX - 200;
+  ctx.fillStyle = '#9CCBB0'; ctx.strokeStyle = '#5E8F74'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(x, G); ctx.lineTo(x, G - 180); ctx.lineTo(x + 200, G - 260); ctx.lineTo(x + 400, G - 180); ctx.lineTo(x + 400, G); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#5E4A3A'; rr(doorX - 36, G - 110, 92, 110, [10, 10, 0, 0]); ctx.fill();
+  ctx.fillStyle = '#fff'; rr(x + 120, G - 170, 160, 34, 6); ctx.fill();
+  ctx.fillStyle = '#1A1A1A'; ctx.font = '600 14px DM Sans'; ctx.textAlign = 'center'; ctx.fillText('The workshop', x + 200, G - 148);
+  ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.font = '700 22px DM Sans'; ctx.fillText('→', doorX + 10, G - 50);
+  art('workshop + door', x, G - 260, 400, 260);
+}
+
+function drawMaze() {
+  ctx.setTransform(dpr * S, 0, 0, dpr * S, 0, 0);
+  ctx.fillStyle = SKY.build; ctx.fillRect(0, 0, W, H);
+  const cs = Math.min((W - 32) / MC, (H - 150) / MR), ox = (W - cs * MC) / 2, oy = 80 + (H - 100 - cs * MR) / 2;
+  const cx = c => ox + (c + 0.5) * cs, cy = r => oy + (r + 0.5) * cs;
+  ctx.fillStyle = '#1A1A1A'; ctx.font = '400 26px DM Serif Display'; ctx.textAlign = 'center';
+  ctx.fillText('The workshop', W / 2, oy - 18);
+  for (let r = 0; r < MR; r++) for (let c = 0; c < MC; c++) if (MAZE[r][c] === '#') {
+    ctx.fillStyle = '#86BFA0'; rr(ox + c * cs + 1, oy + r * cs + 1, cs - 2, cs - 2, cs * 0.18); ctx.fill();
   }
-  // workbench
-  const x = bld.x0 + 160;
-  ctx.fillStyle = '#B08B55'; ctx.fillRect(x, G - 70, 220, 14); ctx.fillRect(x + 12, G - 56, 10, 56); ctx.fillRect(x + 198, G - 56, 10, 56);
-  ctx.fillStyle = '#7C8A99'; ctx.fillRect(x + 30, G - 92, 40, 22); ctx.fillStyle = '#C8DEF0'; ctx.fillRect(x + 34, G - 89, 32, 16);
-  ctx.fillStyle = '#E0524C'; ctx.fillRect(x + 110, G - 78, 50, 8); ctx.fillStyle = '#5C667A'; ctx.fillRect(x + 150, G - 84, 18, 14);
-  drawOrange(x + 250, G - 20, 16, { dir: -1 });
-  art('workbench + tools', x, G - 95, 220, 95); art('orange - building', x + 232, G - 42, 38, 42);
+  art('maze walls', ox, oy, cs * 5, cs);
+  ctx.fillStyle = '#E0B73A';
+  for (const k of dots) { const [c, r] = k.split(',').map(Number); ctx.beginPath(); ctx.arc(cx(c), cy(r), cs * 0.07, 0, 7); ctx.fill(); }
+  ctx.fillStyle = '#5E8F74'; ctx.font = `700 ${cs * 0.45}px DM Sans`;
+  ctx.fillText('←', cx(ENT.c) - cs * 0.1, cy(ENT.r) + cs * 0.16); ctx.fillText('→', cx(EXIT.c) + cs * 0.1, cy(EXIT.r) + cs * 0.16);
+  for (const b of blocks) if (b.maze && !b.hit) {
+    const w = cs * 0.5, h = cs * 0.62, bob = Math.sin(T * 3 + b.c) * cs * 0.04;
+    ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(0,0,0,.2)'; ctx.lineWidth = 1; rr(cx(b.c) - w / 2, cy(b.r) - h / 2 + bob, w, h, 3); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#C8DEF0'; for (let l = 0; l < 3; l++) ctx.fillRect(cx(b.c) - w * 0.32, cy(b.r) - h * 0.3 + l * h * 0.14 + bob, w * 0.64, 2);
+    ctx.fillStyle = '#1F6FA8'; ctx.font = `700 ${Math.round(cs * 0.17)}px DM Sans`; ctx.fillText('#' + b.post.n, cx(b.c), cy(b.r) + h * 0.36 + bob);
+    art('page', cx(b.c) - w / 2, cy(b.r) - h / 2, w, h);
+  }
+  const px = ox + (M.x + 0.5) * cs, py = oy + (M.y + 0.5) * cs, pr = cs * 0.3;
+  drawOrange(px, py, pr, { dir: M.dir });
+  drawPageStack(px, py - pr * 1.25, M.stack.length, cs * 0.46);
+  art('orange - carrying page stack (top-down)', px - pr, py - pr * 1.3 - M.stack.length * cs * 0.08, pr * 2, pr * 2.3 + M.stack.length * cs * 0.08);
+  drawArtLabels();
 }
 
 function drawStep() {
@@ -589,18 +774,63 @@ function drawStep() {
   ctx.fillStyle = '#fff'; ctx.font = '700 20px DM Sans'; ctx.textAlign = 'center'; ctx.fillText('100', flagX + 95, top - 170);
   art('flagpole #100', flagX + 55, top - 205, 100, 205);
   art('staircase', stairX0 + STEP_W, groundY(stairX0 + STEP_W + 1), STEP_W * 2, 60);
-  if (state === 'end') {
-    const cast = [['career', -170], ['return', -110], ['framework', -50], ['build', 150], ['step', 210]];
-    cast.forEach(([, dx], i) => drawOrange(flagX + dx, top - 18 - Math.abs(Math.sin(T * 6 + i)) * 14, 16, { dir: dx < 0 ? 1 : -1 }));
-    art('all the oranges (finale)', flagX - 190, top - 60, 420, 60);
-  }
 }
 
-function draw() {
+// ---------- finale: a bit of every level on the top step ----------
+const partyX = () => flagX + 300;
+function drawFinale(dt) {
+  const top = groundY(flagX), cxm = partyX(), a = T - endT;
+  drawBunting(cxm - 420, cxm + 420, camY + H * 0.3);
+  // plane with the banner, looping overhead
+  const span = W + 900, px = camX + ((a * 140) % span) - 200, py = camY + 90 + Math.sin(a * 1.5) * 14;
+  drawBanner(px - 48, py + 2, banner.map((n, i) => ({ n, x: px - 60 - (i + 1) * 30, y: py + Math.sin(T * 4 + i) * 3 + i * 0.6 })));
+  drawPlane(px, py, true, Math.sin(a * 1.5) * -0.08);
+  // truck driving back and forth with its pile
+  drawCar(cxm + Math.sin(a * 0.6) * 260, top, true, carPile);
+  // everyone jumping: parade followers with signs, the maze orange with her stack, and the main orange
+  const gap = Math.min(34, 520 / Math.max(1, followers.length));
+  followers.forEach((b, i) => {
+    const x = cxm - (followers.length - 1) * gap / 2 + i * gap, hop = Math.abs(Math.sin(a * 5 + i * 0.7)) * 22;
+    b.x = x; b.y = top - b.mr * 2.2 - 46 - b.s / 2 - hop;
+    drawMarcher(b, x, top, false, hop); drawBlock(b);
+  });
+  const mh = Math.abs(Math.sin(a * 4 + 1)) * 26;
+  drawOrange(cxm - 330, top - 20 - mh, 20, { dir: 1, feet: true, still: true });
+  drawPageStack(cxm - 330, top - 46 - mh, M.stack.length, 30);
+  if (M.stack.length) art('orange - holding page stack', cxm - 350, top - 60 - M.stack.length * 5.4 - mh, 40, 60 + M.stack.length * 5.4);
+  const ph = Math.abs(Math.sin(a * 4.4)) * 34;
+  drawOrange(cxm + 330, top - R - ph, R, { dir: -1, feet: true, still: true });
+  art('all the oranges jumping (finale)', cxm - 300, top - 150, 600, 150);
+  // fireworks
+  if (Math.random() < dt * 2.2) {
+    const fx = camX + W * (0.15 + Math.random() * 0.7), fy = camY + H * (0.12 + Math.random() * 0.3), col = FIREWORK[Math.random() * FIREWORK.length | 0];
+    for (let k = 0; k < 36; k++) { const ang = k / 36 * Math.PI * 2, sp = 80 + Math.random() * 90; sparks.push({ x: fx, y: fy, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, t: T, col }); }
+  }
+  for (let i = sparks.length - 1; i >= 0; i--) {
+    const s = sparks[i], age = T - s.t;
+    if (age > 1.3) { sparks.splice(i, 1); continue; }
+    s.vy += 90 * dt; s.x += s.vx * dt; s.y += s.vy * dt;
+    ctx.globalAlpha = 1 - age / 1.3; ctx.fillStyle = s.col; ctx.beginPath(); ctx.arc(s.x, s.y, 2.6, 0, 7); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  art('fireworks', camX + W * 0.4, camY + H * 0.12, 120, 80);
+}
+
+function drawArtLabels() {
+  if (!showArt) return;
+  ctx.setLineDash([6, 4]); ctx.lineWidth = 2; ctx.font = '600 12px DM Sans'; ctx.textAlign = 'left';
+  for (const [name, r] of artSeen) {
+    ctx.strokeStyle = '#E0524C'; ctx.strokeRect(r.x, r.y, r.w, r.h);
+    const tw = ctx.measureText(name).width + 10;
+    ctx.fillStyle = '#E0524C'; ctx.fillRect(r.x, r.y - 18, tw, 18); ctx.fillStyle = '#fff'; ctx.fillText(name, r.x + 5, r.y - 5);
+  }
+  ctx.setLineDash([]);
+}
+
+function draw(dt) {
   artSeen = new Map();
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (state === 'maze') return drawMaze();
   ctx.setTransform(dpr * S, 0, 0, dpr * S, -camX * dpr * S, -camY * dpr * S);
-  // sky per phase
   for (const s of segs) {
     const x0 = Math.max(s.x0, camX - 10), x1 = Math.min(s.id === 'quiet' ? ret.x0 : s.x1, camX + W + 10);
     if (x1 > x0) { ctx.fillStyle = SKY[s.id]; ctx.fillRect(x0, camY - 10, x1 - x0 + 1, H + 20); }
@@ -609,48 +839,52 @@ function draw() {
   drawClouds(); art('clouds', camX + W * 0.55, 40, 120, 50);
   drawFramework(); drawBuild();
   drawGround(); art('sky + ground per level', camX + 8, camY + H - 70, 160, 60);
-  drawParadeProps(); drawReturn();
-  drawQuiet(); drawStep();
-  for (const b of blocks) if (Math.abs(b.x - camX - W / 2) < W) drawBlock(b);
-  drawCareer();
-  // popping number
+  drawRoad(); drawParadeProps(); drawReturn(); drawQuiet(); drawStep();
+  for (const b of blocks) if (!b.maze && !b.inCar && !b.follow && Math.abs(b.x - camX - W / 2) < W) drawBlock(b);
+  if (state === 'end') { drawFinale(dt); return drawArtLabels(); }
+  drawFollowers();
+
+  const m = modeAt(P.x);
+  // the truck: parked at either end of the road unless you're driving it
+  if (camX < fw.x1 + 200 && camX + W > fw.x0 - 200 && m !== 'drive') drawCar(Math.min(driveX1, Math.max(driveX0, P.x)), G, false, carPile);
   for (let i = popups.length - 1; i >= 0; i--) {
     const p = popups[i], a = T - p.t; if (a > 0.9) { popups.splice(i, 1); continue; }
     ctx.globalAlpha = 1 - a / 0.9; ctx.fillStyle = '#1F6FA8'; ctx.font = '700 18px DM Sans'; ctx.textAlign = 'center';
     ctx.fillText('#' + p.n, p.x, p.y - 34 - a * 60); ctx.globalAlpha = 1;
   }
-  // player
-  if (state === 'title' || P.x < quiet.x0) { drawPlane(P.x, P.y, true); art('plane + orange pilot', P.x - 55, P.y - 45, 110, 70); }
-  else if (state !== 'warp') {
-    drawOrange(P.x, P.y, R, { feet: P.onGround && (keys.left !== keys.right), dir: P.dir, squash: P.onGround ? 0 : -0.06, bob: P.onGround && keys.left !== keys.right ? -Math.abs(Math.sin(T * 12)) * 2 : 0 });
+  if (state === 'title' || m === 'fly') {
+    drawBanner(P.x - 48, P.y + 2, banner.map((n, i) => {
+      const h = P.history[Math.min(P.history.length - 1, 6 + i * 5)] || P;
+      return { n, x: P.x - 60 - (i + 1) * 30, y: h.y + Math.sin(T * 4 + i) * 3 };
+    }));
+    drawPlane(P.x, P.y, true, Math.max(-0.35, Math.min(0.35, P.vy / 1400)));
+    art('plane + orange pilot', P.x - 55, P.y - 45, 110, 70);
+  } else if (m === 'drive') {
+    drawCar(P.x, P.y + CAR_FOOT, true, carPile);
+  } else if (state !== 'warp') {
+    const moving = keys.left !== keys.right;
+    drawOrange(P.x, P.y, R, { feet: P.onGround, still: !moving, dir: P.dir, squash: P.onGround ? 0 : -0.06, bob: P.onGround && moving ? -Math.abs(Math.sin(T * 12)) * 2 : 0 });
     art(P.onGround ? 'orange - run' : 'orange - jump', P.x - R, P.y - R * 1.3, R * 2, R * 2.5);
   }
-  // art labels
-  if (showArt) {
-    ctx.setLineDash([6, 4]); ctx.lineWidth = 2; ctx.font = '600 12px DM Sans'; ctx.textAlign = 'left';
-    for (const [name, r] of artSeen) {
-      ctx.strokeStyle = '#E0524C'; ctx.strokeRect(r.x, r.y, r.w, r.h);
-      const tw = ctx.measureText(name).width + 10;
-      ctx.fillStyle = '#E0524C'; ctx.fillRect(r.x, r.y - 18, tw, 18); ctx.fillStyle = '#fff'; ctx.fillText(name, r.x + 5, r.y - 5);
-    }
-    ctx.setLineDash([]);
-  }
+  drawArtLabels();
 }
 
 // ---------- loop ----------
 let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.033, (now - last) / 1000); last = now;
-  if (state === 'title') { P.y = 250 + Math.sin(T * 2) * 20; T += dt; P.x = 200; }
-  else update(dt);
-  const tx = P.x - W * 0.3;
-  camX += (tx - camX) * Math.min(1, dt * 8);
-  const ty = Math.min(G + 80 - H, groundY(P.x) + 80 - H);
+  if (state === 'title') { P.y = 250 + Math.sin(T * 2) * 20; P.x = 200; }
+  T += dt;
+  update(dt);
+  const tx = state === 'end' ? partyX() - W / 2 : P.x - W * 0.3;
+  camX += (tx - camX) * Math.min(1, dt * (state === 'end' ? 2 : 8));
+  const ty = Math.min(G + 80 - H, groundY(state === 'end' ? flagX : P.x) + 80 - H);
   camY += (ty - camY) * Math.min(1, dt * 4);
-  draw();
+  draw(dt);
   requestAnimationFrame(frame);
 }
 camY = G + 80 - H;
+setHud('career');
 requestAnimationFrame(frame);
 </script>
 </body>
