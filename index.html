@@ -35,6 +35,7 @@
   #controls { display: flex; gap: 6px; }
   #controls button { width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--deep); background: #fff; color: var(--deep); font-size: 16px; font-weight: 700; user-select: none; -webkit-user-select: none; }
   #controls #jumpBtn { width: 64px; border-radius: 22px; font-size: 14px; }
+  #versionsBtn { width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--rule); color: var(--grey); display: grid; place-items: center; font: italic 700 17px Georgia, serif; text-decoration: none; }
   #controls [hidden], #controls[hidden] { display: none; }
   @media (max-width: 560px) { #article .title { font-size: 16px; } #article .eyebrow { display: none; } }
 
@@ -85,6 +86,7 @@
     <button id="upBtn" aria-label="Move up" hidden>▲</button>
     <button id="downBtn" aria-label="Move down" hidden>▼</button>
     <button id="jumpBtn">Jump</button>
+    <a id="versionsBtn" href="versions/" target="_blank" rel="noopener" aria-label="Earlier versions of this game" title="Earlier versions">i</a>
     <button id="fastBtn" aria-label="Move right">▶</button>
   </div>
 </footer>
@@ -231,14 +233,13 @@ const nStops = stepPosts.length + nLocked, STOP_W = 280;
 const stp = seg('step', 400 + nStops * STOP_W + 1100);
 const homeX = stp.x0 + 400 + nStops * STOP_W + 250;     // the #100 finish line
 const flagX = homeX;
-const FLAG_H = [0, 60, 0, 100, 30, 0];                   // how high each flag flies above running height
 for (let k = 0; k < nStops; k++) {
-  const x = stp.x0 + 400 + k * STOP_W, b = { x, y: G - 48 - FLAG_H[k % 6], s: 36, flag: true };
+  const x = stp.x0 + 400 + k * STOP_W, b = { x, lift: LIFT[k % 6] };
   if (k < stepPosts.length) b.post = stepPosts[k]; else b.locked = POSTS.length + 1 + (k - stepPosts.length);
   blocks.push(b);
-  // hurdles between the flags (h = height above ground)
-  terrain.push({ x0: x + 132, x1: x + 148, h: [38, 48][k % 2], kind: 'hurdle' });
-  if (k % 3 === 2) terrain.push({ x0: x + 212, x1: x + 228, h: 38, kind: 'hurdle' });
+  // hurdles between the boxes (h = height above ground)
+  terrain.push({ x0: x + 128, x1: x + 152, h: [44, 54][k % 2], kind: 'hurdle' });
+  if (k % 3 === 2) terrain.push({ x0: x + 208, x1: x + 232, h: 44, kind: 'hurdle' });
 }
 // small and far away: a house for each earlier level, and the crowd behind the rail
 const HOUSES = ['career', 'quiet', 'return', 'framework', 'build'].map((ph, i) => ({ ph, x: stp.x0 + 300 + i * (homeX - stp.x0 - 600) / 5 }));
@@ -587,15 +588,6 @@ function drawBlock(b) {
   const age = b.t != null ? T - b.t : 9;
   const lift = age < 0.25 ? -Math.sin(age / 0.25 * Math.PI) * 10 : 0;
   const z = b.s, x = b.x - z / 2, y = b.y - z / 2 + lift;
-  if (b.flag) {
-    ctx.strokeStyle = '#6E7A8E'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(b.x - z / 2, G); ctx.lineTo(b.x - z / 2, y - 6); ctx.stroke();
-    const wave = Math.sin(T * 5 + b.x) * 3, col = b.locked ? null : b.hit ? '#1F6FA8' : '#F5C542';
-    ctx.beginPath(); ctx.moveTo(b.x - z / 2, y - 4); ctx.quadraticCurveTo(b.x, y + wave, b.x + z / 2 + 6, y + z * 0.3); ctx.lineTo(b.x - z / 2, y + z * 0.7); ctx.closePath();
-    if (col) { ctx.fillStyle = col; ctx.fill(); } else { ctx.setLineDash([4, 3]); ctx.strokeStyle = '#8A9BB0'; ctx.lineWidth = 2; ctx.stroke(); ctx.setLineDash([]); }
-    ctx.fillStyle = b.locked ? '#8A9BB0' : '#fff'; ctx.font = '700 11px DM Sans'; ctx.textAlign = 'center';
-    ctx.fillText(b.locked ? '#' + b.locked : b.hit ? '#' + b.post.n : '?', b.x - 2, y + z * 0.38);
-    art(b.locked ? 'coming-soon flag' : 'race flag', x - 4, y - 6, z + 12, G - y + 6); return;
-  }
   if (b.locked) {
     ctx.setLineDash([5, 4]); ctx.strokeStyle = '#8A9BB0'; ctx.lineWidth = 2; rr(x, y, z, z, 8); ctx.stroke(); ctx.setLineDash([]);
     ctx.fillStyle = '#8A9BB0'; ctx.font = '600 12px DM Sans'; ctx.textAlign = 'center';
@@ -707,10 +699,14 @@ function drawParadeProps() {
       for (let k = 0; k <= 4; k++) ctx.lineTo(t.x0 + k * w / 4, top + (k % 2 ? t.h - 6 : 14));
       ctx.stroke(); art('big drum', t.x0, top, w, t.h);
     } else if (t.kind === 'hurdle') {
-      ctx.fillStyle = '#fff'; ctx.fillRect(t.x0, top, 4, t.h); ctx.fillRect(t.x1 - 4, top, 4, t.h);
-      for (let k = 0; k < 4; k++) { ctx.fillStyle = k % 2 ? '#fff' : '#E0524C'; ctx.fillRect(t.x0 - 6 + k * 7, top, 7, 8); }
-      ctx.strokeStyle = 'rgba(0,0,0,.2)'; ctx.lineWidth = 1; ctx.strokeRect(t.x0 - 6, top, 28, 8);
-      art('hurdle', t.x0 - 8, top - 4, 32, t.h + 4);
+      const cx = (t.x0 + t.x1) / 2, bw = 48;
+      ctx.fillStyle = 'rgba(60,30,20,.25)'; ctx.beginPath(); ctx.ellipse(cx, G + 3, 30, 5, 0, 0, 7); ctx.fill();   // shadow
+      ctx.fillStyle = '#3D4655';
+      for (const lx of [cx - bw / 2 + 4, cx + bw / 2 - 10]) { ctx.fillRect(lx, top + 6, 6, t.h - 6); ctx.fillRect(lx - 5, G - 5, 16, 5); }
+      rr(cx - bw / 2, top, bw, 16, 4); ctx.save(); ctx.clip();
+      for (let k = 0; k < 6; k++) { ctx.fillStyle = k % 2 ? '#fff' : '#E0524C'; ctx.fillRect(cx - bw / 2 + k * 8, top, 8, 16); }
+      ctx.restore(); ctx.strokeStyle = '#7A1F1B'; ctx.lineWidth = 2.5; rr(cx - bw / 2, top, bw, 16, 4); ctx.stroke();
+      art('hurdle', cx - bw / 2 - 4, top - 4, bw + 8, t.h + 8);
     } else if (t.kind === 'bench') {
       ctx.fillStyle = '#8A6A45'; ctx.fillRect(t.x0, top, w, 8); ctx.fillRect(t.x0 + 6, top - 22, w - 12, 6);
       ctx.fillRect(t.x0 + 8, top, 6, t.h); ctx.fillRect(t.x1 - 14, top, 6, t.h);
@@ -851,6 +847,7 @@ function drawRaceBack() {
     drawOrange(p.x, G - 40 - p.r * 1.15 - hop, p.r, { feet: true, still: true, dir: p.x > P.x ? -1 : 1 });
   }
   art('crowd cheering (small)', camX + W * 0.5, G - 70, 120, 34);
+  ctx.fillStyle = 'rgba(205,227,244,.35)'; ctx.fillRect(x0, camY - 10, x1 - x0, G - 40 - camY + 10);   // haze pushes it all back
   ctx.fillStyle = '#fff';
   ctx.fillRect(x0, G - 40, x1 - x0, 4);
   for (let x = Math.ceil(x0 / 50) * 50; x < x1; x += 50) ctx.fillRect(x, G - 40, 3, 22);
