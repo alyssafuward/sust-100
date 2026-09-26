@@ -224,24 +224,33 @@ const dots = new Set();
   open.forEach((cell, k) => { if (!picked.has(k)) dots.add(cell.c + ',' + cell.r); });
 }
 
-// 5. a new step: staircase to #100
+// 5. a new step: hometown street, everyone from before is out to cheer
 const stepPosts = inPhase('step');
 const nLocked = Math.max(0, TOTAL - 1 - POSTS.length);
-const nSteps = stepPosts.length + nLocked + 1, STEP_W = 200, RISE = 30;
-const stp = seg('step', 300 + nSteps * STEP_W + 800);
-const stairX0 = stp.x0 + 300;
-const flagX = stairX0 + (nSteps - 1) * STEP_W + 110;
-for (let k = 0; k < nSteps - 1; k++) {
-  const b = { x: stairX0 + k * STEP_W + 100 };
+const nStops = stepPosts.length + nLocked, STOP_W = 280;
+const stp = seg('step', 400 + nStops * STOP_W + 1100);
+const homeX = stp.x0 + 400 + nStops * STOP_W + 250;     // #100's front door
+const flagX = homeX;
+// porch steps, benches and planters to hop over (h = height above ground)
+for (let k = 0; k < nStops; k++) {
+  const x = stp.x0 + 400 + k * STOP_W + 140, kind = ['bench', 'planter', 'porch'][k % 3];
+  if (kind === 'bench') terrain.push({ x0: x - 45, x1: x + 45, h: 34, kind });
+  if (kind === 'planter') terrain.push({ x0: x - 30, x1: x + 30, h: 44, kind });
+  if (kind === 'porch') { terrain.push({ x0: x - 70, x1: x - 30, h: 30, kind: 'step' }, { x0: x - 30, x1: x + 50, h: 60, kind: 'step' }, { x0: x + 50, x1: x + 90, h: 30, kind: 'step' }); }
+}
+for (let k = 0; k < nStops; k++) {
+  const b = { x: stp.x0 + 400 + k * STOP_W, lift: LIFT[k % 6] };
   if (k < stepPosts.length) b.post = stepPosts[k]; else b.locked = POSTS.length + 1 + (k - stepPosts.length);
   blocks.push(b);
 }
+// a house for each earlier level, and townsfolk out front
+const HOUSES = ['career', 'quiet', 'return', 'framework', 'build'].map((ph, i) => ({ ph, x: stp.x0 + 300 + i * (homeX - stp.x0 - 600) / 5 }));
+const TOWN = Array.from({ length: Math.floor((homeX - stp.x0) / 190) }, (_, i) => ({ x: stp.x0 + 120 + i * 190 + (i * 53 % 60), r: [13, 17, 11, 20, 15][i % 5], ph: i * 1.7 }));
 const worldEnd = stp.x1;
 
 function groundY(x) {
-  if (x >= ret.x0 && x < ret.x1) { for (const t of terrain) if (x >= t.x0 && x < t.x1) return G - t.h; return G; }
-  if (x < stairX0) return G;
-  return G - RISE * Math.min(nSteps, Math.floor((x - stairX0) / STEP_W) + 1);
+  if ((x >= ret.x0 && x < ret.x1) || x >= stp.x0) for (const t of terrain) if (x >= t.x0 && x < t.x1) return G - t.h;
+  return G;
 }
 for (const b of blocks) { b.s = b.s || 44; if (b.y == null && !b.maze) b.y = groundY(b.x) - (b.lift || 126) - b.s / 2; }
 function phaseAt(x) {
@@ -391,9 +400,16 @@ function updateMaze(dt) {
 }
 
 function updateFollowers(dt) {
-  const inParade = P.x >= ret.x0 && P.x < ret.x1;
+  const inParade = P.x >= ret.x0 && P.x < ret.x1, inTown = P.x >= stp.x0 - 300;
   followers.forEach((b, i) => {
     let tx, ty;
+    b.hop = 0;
+    if (inTown) {      // cheering along the street, holding their signs
+      b.fx = stp.x0 + 260 + (i + 0.5) * (homeX - stp.x0 - 400) / followers.length; b.fy = G - 34;
+      b.hop = Math.abs(Math.sin(T * 5 + i * 0.9)) * 18; b.moving = false;
+      b.x = b.fx; b.y = b.fy - b.mr * 2.2 - 46 - b.s / 2 - b.hop;
+      return;
+    }
     if (inParade) {
       const t = P.trail[(i + 1) * 14];
       tx = t ? t.x : P.x - 42 * (i + 1) * P.dir; ty = t ? t.y : groundY(tx);
@@ -607,14 +623,12 @@ function drawClouds() {
 function drawGround() {
   const xs = [camX - 20];
   for (const s of segs) xs.push(s.x0, s.x1);
-  for (let k = 0; k <= nSteps; k++) xs.push(stairX0 + k * STEP_W);
   for (const t of terrain) xs.push(t.x0, t.x1);
   xs.push(camX + W + 20);
   const pts = [...new Set(xs)].filter(x => x >= camX - 20 && x <= camX + W + 20).sort((a, b) => a - b);
   for (let i = 0; i < pts.length - 1; i++) {
     const a = pts[i], b = pts[i + 1], mid = (a + b) / 2, gy = groundY(mid), ph = phaseAt(mid);
     ctx.fillStyle = GROUND[ph]; ctx.fillRect(a, gy, b - a + 1, camY + H - gy + 10);
-    if (ph === 'step' && mid > stairX0) { ctx.strokeStyle = 'rgba(120,90,50,.35)'; ctx.lineWidth = 2; ctx.strokeRect(a, gy, b - a, 30); }
   }
 }
 
@@ -659,7 +673,7 @@ function drawReturn() {
 function drawFollowers() {
   for (let i = followers.length - 1; i >= 0; i--) {
     const b = followers[i];
-    drawMarcher(b, b.fx, b.fy, b.moving);
+    drawMarcher(b, b.fx, b.fy, b.moving, b.hop);
     drawBlock(b);
   }
   if (followers.length) art('orange - following with sign', followers[0].fx - 30, followers[0].y - 25, 60, followers[0].fy - followers[0].y + 25);
@@ -683,6 +697,15 @@ function drawParadeProps() {
       ctx.strokeStyle = '#F5C542'; ctx.lineWidth = 2; ctx.beginPath();
       for (let k = 0; k <= 4; k++) ctx.lineTo(t.x0 + k * w / 4, top + (k % 2 ? t.h - 6 : 14));
       ctx.stroke(); art('big drum', t.x0, top, w, t.h);
+    } else if (t.kind === 'bench') {
+      ctx.fillStyle = '#8A6A45'; ctx.fillRect(t.x0, top, w, 8); ctx.fillRect(t.x0 + 6, top - 22, w - 12, 6);
+      ctx.fillRect(t.x0 + 8, top, 6, t.h); ctx.fillRect(t.x1 - 14, top, 6, t.h);
+      art('bench', t.x0, top - 22, w, t.h + 22);
+    } else if (t.kind === 'planter') {
+      ctx.fillStyle = '#C97F5B'; ctx.fillRect(t.x0, top, w, t.h);
+      ctx.fillStyle = '#6BBF73'; for (const dx of [12, 30, 48]) { ctx.beginPath(); ctx.arc(t.x0 + dx, top - 4, 11, 0, 7); ctx.fill(); }
+      ctx.fillStyle = '#F7A8B8'; ctx.beginPath(); ctx.arc(t.x0 + 30, top - 12, 5, 0, 7); ctx.fill();
+      art('planter', t.x0, top - 16, w, t.h + 16);
     } else if (t.kind === 'float') {
       ctx.fillStyle = '#A8D8F0'; rr(t.x0, top, w, t.h - 12, 10); ctx.fill();
       ctx.fillStyle = '#fff';
@@ -759,28 +782,87 @@ function drawMaze() {
   drawArtLabels();
 }
 
-function drawStep() {
-  if (camX + W < stp.x0) return;
-  const top = groundY(flagX);
-  ctx.strokeStyle = '#6E7A8E'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(flagX + 60, top); ctx.lineTo(flagX + 60, top - 200); ctx.stroke();
-  const wave = Math.sin(T * 4) * 4;
-  ctx.fillStyle = '#1F6FA8'; ctx.beginPath(); ctx.moveTo(flagX + 62, top - 198); ctx.quadraticCurveTo(flagX + 110, top - 190 + wave, flagX + 150, top - 180); ctx.lineTo(flagX + 62, top - 150); ctx.fill();
-  ctx.fillStyle = '#fff'; ctx.font = '700 20px DM Sans'; ctx.textAlign = 'center'; ctx.fillText('100', flagX + 95, top - 170);
-  art('flagpole #100', flagX + 55, top - 205, 100, 205);
-  art('staircase', stairX0 + STEP_W, groundY(stairX0 + STEP_W + 1), STEP_W * 2, 60);
+function drawRobot(x, feet) {
+  ctx.fillStyle = '#C9CCD6'; ctx.strokeStyle = '#6E7A8E'; ctx.lineWidth = 2;
+  rr(x - 12, feet - 30, 24, 22, 4); ctx.fill(); ctx.stroke();
+  rr(x - 14, feet - 52, 28, 20, 5); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#1F6FA8'; ctx.beginPath(); ctx.arc(x - 6, feet - 42, 3, 0, 7); ctx.arc(x + 6, feet - 42, 3, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(x, feet - 52); ctx.lineTo(x, feet - 62); ctx.stroke();
+  ctx.fillStyle = '#E0524C'; ctx.beginPath(); ctx.arc(x, feet - 64, 3, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#6E7A8E'; ctx.beginPath(); ctx.moveTo(x - 6, feet - 8); ctx.lineTo(x - 6, feet); ctx.moveTo(x + 6, feet - 8); ctx.lineTo(x + 6, feet); ctx.stroke();
+}
+
+function drawHouse(h) {
+  const x = h.x, base = G - 40, w = 230, ht = 150;
+  ctx.fillStyle = SKY[h.ph]; ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 2;
+  ctx.fillRect(x - w / 2, base - ht, w, ht); ctx.strokeRect(x - w / 2, base - ht, w, ht);
+  ctx.fillStyle = GROUND[h.ph]; ctx.beginPath(); ctx.moveTo(x - w / 2 - 14, base - ht); ctx.lineTo(x, base - ht - 70); ctx.lineTo(x + w / 2 + 14, base - ht); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#fff'; for (const dx of [-70, 50]) { ctx.fillRect(x + dx, base - ht + 30, 30, 30); ctx.strokeRect(x + dx, base - ht + 30, 30, 30); }
+  ctx.fillStyle = '#8A6A45'; ctx.fillRect(x - 18, base - 64, 36, 64);
+  ctx.fillStyle = '#fff'; rr(x - 60, base - ht - 30, 120, 22, 5); ctx.fill();
+  ctx.fillStyle = '#1A1A1A'; ctx.font = '600 11px DM Sans'; ctx.textAlign = 'center'; ctx.fillText(phaseName[h.ph], x, base - ht - 15);
+  // each house keeps a piece of its level
+  if (h.ph === 'career') drawPlane(x + 70, base - ht - 30, false, -0.1);
+  if (h.ph === 'quiet') { drawOrange(x + 70, base - 14, 13, { sleep: true }); ctx.fillStyle = '#6E7A8E'; ctx.font = '700 14px DM Sans'; ctx.fillText('z', x + 88, base - 34 - (T * 10 % 10)); }
+  if (h.ph === 'return') { drawBunting(x - w / 2, x + w / 2, base - ht + 6); }
+  if (h.ph === 'framework') { ctx.fillStyle = '#C8DEF0'; ctx.fillRect(x + 36, base - 60, 70, 60); ctx.strokeRect(x + 36, base - 60, 70, 60); }
+  if (h.ph === 'build') drawRobot(x + 72, base);
+  art('house for each level', x - w / 2, base - ht - 70, w, ht + 70);
+}
+
+// back layer: houses and the road the truck drives on
+function drawHometownBack() {
+  if (camX + W < stp.x0 - 100) return;
+  for (const h of HOUSES) if (Math.abs(h.x - camX - W / 2) < W) drawHouse(h);
+  // home: #100's front door
+  const hx = homeX, base = G - 40;
+  ctx.fillStyle = '#FFF4E0'; ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.lineWidth = 3;
+  ctx.fillRect(hx - 190, base - 230, 380, 230); ctx.strokeRect(hx - 190, base - 230, 380, 230);
+  ctx.fillStyle = '#1F6FA8'; ctx.beginPath(); ctx.moveTo(hx - 215, base - 230); ctx.lineTo(hx, base - 340); ctx.lineTo(hx + 215, base - 230); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.font = '700 34px DM Sans'; ctx.textAlign = 'center'; ctx.fillText('#100', hx, base - 255);
+  ctx.fillStyle = '#E0524C'; rr(hx - 30, base - 100, 60, 100, [30, 30, 0, 0]); ctx.fill();
+  ctx.fillStyle = '#fff'; for (const dx of [-140, 90]) { ctx.fillRect(hx + dx, base - 170, 50, 50); ctx.strokeRect(hx + dx, base - 170, 50, 50); }
+  art('home (#100)', hx - 215, base - 340, 430, 340);
+  // road
+  const x0 = Math.max(stp.x0, camX - 10), x1 = camX + W + 10;
+  if (x1 > x0) {
+    ctx.fillStyle = '#B9BFC9'; ctx.fillRect(x0, G - 40, x1 - x0, 40);
+    ctx.fillStyle = '#F2F8FD'; for (let x = Math.ceil(x0 / 60) * 60; x < x1; x += 60) ctx.fillRect(x, G - 22, 30, 4);
+    art('street', x0 + 20, G - 40, 160, 40);
+  }
+}
+
+// people and traffic: a bit of every level, all the way down the street
+function drawHometownLife() {
+  if (camX + W < stp.x0 - 100) return;
+  // plane with the banner, looping overhead
+  const span = W + 900, px = camX + ((T * 140) % span) - 200, py = camY + 90 + Math.sin(T * 1.5) * 14;
+  drawBanner(px - 48, py + 2, banner.map((n, i) => ({ n, x: px - 60 - (i + 1) * 30, y: py + Math.sin(T * 4 + i) * 3 + i * 0.6 })));
+  drawPlane(px, py, true, Math.sin(T * 1.5) * -0.08);
+  art('plane + banner flying over town', px - 60, py - 40, 120, 60);
+  // truck driving down the street with its pile
+  const tx = camX - 150 + ((T * 110) % (W + 300));
+  drawCar(tx, G - 8, true, carPile);
+  // townsfolk jumping and cheering
+  for (const p of TOWN) {
+    if (Math.abs(p.x - camX - W / 2) > W) continue;
+    const hop = Math.abs(Math.sin(T * 4.5 + p.ph)) * 16;
+    drawOrange(p.x, G - 34 - p.r * 1.15 - hop, p.r, { feet: true, still: true, dir: p.x > P.x ? -1 : 1 });
+  }
+  if (TOWN.length) art('townsfolk oranges jumping', TOWN[0].x - 20, G - 90, 40, 60);
+  // the maze orange with her stack of pages, in front of the workshop house
+  const bh = HOUSES.find(h => h.ph === 'build'), mh = Math.abs(Math.sin(T * 4 + 1)) * 20;
+  if (M.stack.length && Math.abs(bh.x - camX - W / 2) < W) {
+    drawOrange(bh.x - 40, G - 34 - 20 - mh, 18, { dir: 1, feet: true, still: true });
+    drawPageStack(bh.x - 40, G - 34 - 44 - mh, M.stack.length, 28);
+  }
 }
 
 // ---------- finale: a bit of every level on the top step ----------
-const partyX = () => flagX + 300;
+const partyX = () => homeX + 60;
 function drawFinale(dt) {
   const top = groundY(flagX), cxm = partyX(), a = T - endT;
   drawBunting(cxm - 420, cxm + 420, camY + H * 0.3);
-  // plane with the banner, looping overhead
-  const span = W + 900, px = camX + ((a * 140) % span) - 200, py = camY + 90 + Math.sin(a * 1.5) * 14;
-  drawBanner(px - 48, py + 2, banner.map((n, i) => ({ n, x: px - 60 - (i + 1) * 30, y: py + Math.sin(T * 4 + i) * 3 + i * 0.6 })));
-  drawPlane(px, py, true, Math.sin(a * 1.5) * -0.08);
-  // truck driving back and forth with its pile
-  drawCar(cxm + Math.sin(a * 0.6) * 260, top, true, carPile);
   // everyone jumping: parade followers with signs, the maze orange with her stack, and the main orange
   const gap = Math.min(34, 520 / Math.max(1, followers.length));
   followers.forEach((b, i) => {
@@ -831,9 +913,9 @@ function draw(dt) {
   }
   if (camX + W > worldEnd) { ctx.fillStyle = SKY.step; ctx.fillRect(worldEnd, camY - 10, camX + W - worldEnd + 10, H + 20); }
   drawClouds(); art('clouds', camX + W * 0.55, 40, 120, 50);
-  drawFramework(); drawBuild();
+  drawFramework(); drawBuild(); drawHometownBack();
   drawGround(); art('sky + ground per level', camX + 8, camY + H - 70, 160, 60);
-  drawRoad(); drawParadeProps(); drawReturn(); drawQuiet(); drawStep();
+  drawRoad(); drawParadeProps(); drawReturn(); drawQuiet(); drawHometownLife();
   for (const b of blocks) if (!b.maze && !b.inCar && !b.follow && Math.abs(b.x - camX - W / 2) < W) drawBlock(b);
   if (state === 'end') { drawFinale(dt); return drawArtLabels(); }
   drawFollowers();
