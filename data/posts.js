@@ -1065,6 +1065,17 @@ window.POSTS = [
   "type": "newsletter",
   "paid": false,
   "cover": null
+ },
+ {
+  "date": "2026-09-29",
+  "title": "ESSAY #7 / the phases of trying something new",
+  "subtitle": "Even in moments of self-doubt, there’s a self in you that knows you’re going to be okay.",
+  "url": "https://alyssafuward.substack.com/p/essay-7-the-phases-of-trying-something",
+  "type": "newsletter",
+  "paid": false,
+  "phase": "step",
+  "n": 98,
+  "cover": null
  }
 ];
 window.PHASES = [{"id": "career", "name": "Career notes", "start": "2022-01-01"}, {"id": "quiet", "name": "The quiet stretch", "start": "2023-06-01"}, {"id": "return", "name": "The return", "start": "2024-12-01"}, {"id": "framework", "name": "The framework", "start": "2025-11-01"}, {"id": "build", "name": "Building with AI", "start": "2026-02-11"}, {"id": "step", "name": "A new step", "start": "2026-08-11"}];

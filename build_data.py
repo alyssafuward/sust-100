@@ -41,6 +41,13 @@ for i, r in enumerate(rows, 1):
     d = r["post_date"][:10]
     posts.append({"n": i, "date": d, "title": r["title"], "subtitle": r["subtitle"],
                   "url": BASE + slug, "phase": phase(d), "type": r["type"], "paid": r["audience"] != "everyone"})
+# posts published after the latest export (skipped once an export includes them)
+if os.path.exists("data/extra_posts.json"):
+    seen = {p["url"] for p in posts}
+    posts += [dict(x, phase=phase(x["date"])) for x in json.load(open("data/extra_posts.json")) if x["url"] not in seen]
+    posts.sort(key=lambda p: p["date"])
+    for i, p in enumerate(posts, 1):
+        p["n"] = i
 # Substack rate-limits, so fetch slowly and cache what we get
 CACHE = "data/covers.json"
 covers = json.load(open(CACHE)) if os.path.exists(CACHE) else {}
