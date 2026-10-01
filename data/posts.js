@@ -1076,6 +1076,17 @@ window.POSTS = [
   "phase": "step",
   "n": 98,
   "cover": null
+ },
+ {
+  "date": "2026-10-06",
+  "title": "ESSAY #8 / celebrating a milestone — 100 posts!",
+  "subtitle": "It’s a milestone I didn’t see coming — after 45 months, I’ve published 100 posts on Step Up Step Together! Let’s celebrate with much fanfare and looking back at all the eras that got us here.",
+  "url": "https://alyssafuward.substack.com/p/essay-8-celebrating-a-milestone-100",
+  "type": "newsletter",
+  "paid": false,
+  "phase": "step",
+  "n": 99,
+  "cover": null
  }
 ];
 window.PHASES = [{"id": "career", "name": "Career notes", "start": "2022-01-01"}, {"id": "quiet", "name": "Taking a break", "start": "2023-06-01"}, {"id": "return", "name": "The return", "start": "2024-12-01"}, {"id": "framework", "name": "Using AI", "start": "2025-11-01"}, {"id": "build", "name": "Building with AI", "start": "2026-02-11"}, {"id": "step", "name": "A new step", "start": "2026-08-11"}];
