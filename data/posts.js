@@ -1078,4 +1078,4 @@ window.POSTS = [
   "cover": null
  }
 ];
-window.PHASES = [{"id": "career", "name": "Career notes", "start": "2022-01-01"}, {"id": "quiet", "name": "The quiet stretch", "start": "2023-06-01"}, {"id": "return", "name": "The return", "start": "2024-12-01"}, {"id": "framework", "name": "The framework", "start": "2025-11-01"}, {"id": "build", "name": "Building with AI", "start": "2026-02-11"}, {"id": "step", "name": "A new step", "start": "2026-08-11"}];
+window.PHASES = [{"id": "career", "name": "Career notes", "start": "2022-01-01"}, {"id": "quiet", "name": "Taking a break", "start": "2023-06-01"}, {"id": "return", "name": "The return", "start": "2024-12-01"}, {"id": "framework", "name": "Using AI", "start": "2025-11-01"}, {"id": "build", "name": "Building with AI", "start": "2026-02-11"}, {"id": "step", "name": "A new step", "start": "2026-08-11"}];

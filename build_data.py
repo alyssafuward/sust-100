@@ -7,9 +7,9 @@ import csv, json, os, re, sys, time, urllib.error, urllib.request
 BASE = "https://alyssafuward.substack.com/p/"
 PHASES = [  # (start date inclusive, id, name)
     ("2022-01-01", "career", "Career notes"),
-    ("2023-06-01", "quiet", "The quiet stretch"),
+    ("2023-06-01", "quiet", "Taking a break"),
     ("2024-12-01", "return", "The return"),
-    ("2025-11-01", "framework", "The framework"),
+    ("2025-11-01", "framework", "Using AI"),
     ("2026-02-11", "build", "Building with AI"),
     ("2026-08-11", "step", "A new step"),
 ]
