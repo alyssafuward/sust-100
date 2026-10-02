@@ -526,7 +526,7 @@ function update(dt) {
   if (P.x >= flagX - 10) {
     state = 'end'; endT = T;
     $('controls').hidden = true;
-    $('endText').textContent = `You collected ${found} of ${POSTS.length} posts. That's 100 posts. Here's to the next hundred.`;
+    $('endText').textContent = `You collected ${found} of ${POSTS.length} posts. Here's to the next hundred.`;
     setTimeout(() => $('end').hidden = false, 900);
   }
 }
